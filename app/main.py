@@ -9,18 +9,26 @@ Endpoints:
 """
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 
 from app.agents.coordinator import handle_request
 from app.core.repository import events_for, init_db
 from app.core.schemas import InboundRequest, OrchestratorResponse
 
-app = FastAPI(title="Autonomous Ops Orchestrator", version="0.1.0")
 
-
-@app.on_event("startup")
-def _startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     init_db()
+    yield
+
+
+app = FastAPI(
+    title="Autonomous Ops Orchestrator",
+    version="0.1.0",
+    lifespan=lifespan,
+)
 
 
 @app.get("/health")

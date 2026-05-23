@@ -37,6 +37,8 @@ def init_db() -> None:
     with _conn() as c:
         c.executescript(
             """
+            PRAGMA journal_mode=WAL;
+            PRAGMA synchronous=NORMAL;
             CREATE TABLE IF NOT EXISTS tickets (
                 request_id TEXT PRIMARY KEY,
                 channel TEXT,

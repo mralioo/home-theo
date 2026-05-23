@@ -2,6 +2,8 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.4
+sse-starlette==2.1.3
+pydantic-settings==2.6.1
 
 # --- LLM / agentic mode (only needed when USE_LLM=1) ---
 # Pin google-adk! It ships breaking changes on a ~bi-weekly cadence.

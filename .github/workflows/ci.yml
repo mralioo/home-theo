@@ -1,0 +1,36 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: install
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: ruff
+        run: ruff check . && ruff format --check .
+      - name: pytest
+        env: { USE_LLM: "0", DB_PATH: "/tmp/ci.db" }
+        run: pytest --cov=app --cov-report=term-missing --cov-fail-under=70 -q
+      - name: validate-bpmn
+        run: python scripts/validate_bpmn.py static/diagram.bpmn
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: docker build -t ops:ci .
+      - name: smoke
+        run: |
+          docker run -d -p 8080:8080 --name ops ops:ci
+          sleep 3
+          curl -fsS http://localhost:8080/health
+          docker logs ops
+          docker rm -f ops
