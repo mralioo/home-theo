@@ -22,6 +22,7 @@ from app.agents.coordinator import handle_request
 from app.core import event_bus
 from app.core.repository import events_for, init_db
 from app.core.schemas import InboundRequest, OrchestratorResponse
+from app.routes import actions as actions_route
 from app.routes import elevenlabs as elevenlabs_route
 from app.routes import events as events_route
 
@@ -45,6 +46,7 @@ app = FastAPI(
 
 app.include_router(events_route.router)
 app.include_router(elevenlabs_route.router)
+app.include_router(actions_route.router)
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 

@@ -17,6 +17,7 @@ from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from app.agents.coordinator import handle_request
+from app.core.repository import events_for, upsert_ticket
 from app.core.schemas import Channel, InboundRequest
 from app.core.settings import settings
 
@@ -86,3 +87,43 @@ def elevenlabs_tool(
         ticket_id=req.request_id,
         agent_message=_STOCK_ACK,
     )
+
+
+class ElevenLabsPostCall(BaseModel):
+    """Post-call webhook payload.
+
+    ElevenLabs fires this after a conversation ends with a transcript summary
+    and metadata. We attach it to the ticket so the dashboard can show the
+    final call outcome without re-running orchestration.
+    """
+
+    conversation_id: str
+    transcript_summary: str | None = None
+    transcript: str | None = None
+    duration_seconds: float | None = None
+    success: bool | None = None
+
+
+@router.post("/webhooks/elevenlabs/post-call")
+def elevenlabs_post_call(
+    body: ElevenLabsPostCall,
+    x_webhook_secret: str | None = Header(default=None, alias="X-Webhook-Secret"),
+) -> dict:
+    if x_webhook_secret != settings.webhook_secret:
+        raise HTTPException(status_code=401, detail="bad webhook secret")
+
+    # Allow the webhook to land even before the inbound-tool call (race), but
+    # if the ticket already exists, enrich the stored payload.
+    existing = events_for(body.conversation_id)
+    upsert_ticket(
+        body.conversation_id,
+        payload={
+            "post_call": {
+                "transcript_summary": body.transcript_summary,
+                "transcript": body.transcript,
+                "duration_seconds": body.duration_seconds,
+                "success": body.success,
+            }
+        },
+    )
+    return {"ticket_id": body.conversation_id, "matched_existing": bool(existing)}
