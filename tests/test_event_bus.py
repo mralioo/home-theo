@@ -7,14 +7,7 @@ from app.core import event_bus
 from app.core.schemas import StatusEvent
 
 
-@pytest.fixture(autouse=True)
-def _attach_running_loop():
-    """event_bus needs a loop reference for cross-thread publish."""
-    event_bus.attach_loop(asyncio.get_event_loop())
-    yield
-
-
-async def _drain(request_id: str, n: int, timeout: float = 1.0) -> list[StatusEvent]:
+async def _drain(request_id: str, n: int) -> list[StatusEvent]:
     received: list[StatusEvent] = []
     async for ev in event_bus.subscribe(request_id):
         received.append(ev)

@@ -39,18 +39,18 @@ def publish(event: StatusEvent) -> None:
             except asyncio.QueueFull:
                 pass  # slow consumer — drop
 
-    if _loop is None or _loop.is_closed():
-        return
-
     try:
         running = asyncio.get_running_loop()
     except RuntimeError:
         running = None
 
-    if running is _loop:
+    if running is not None:
+        # Caller is already on an asyncio loop — dispatch directly.
         asyncio.create_task(_fanout())
-    else:
+    elif _loop is not None and not _loop.is_closed():
+        # Sync caller (coordinator threadpool) — bridge into the stored loop.
         asyncio.run_coroutine_threadsafe(_fanout(), _loop)
+    # else: no way to deliver — drop. Backlog still preserves the event.
 
 
 async def subscribe(request_id: str) -> AsyncIterator[StatusEvent]:

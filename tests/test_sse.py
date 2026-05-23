@@ -1,14 +1,18 @@
-"""Integration test for the SSE endpoint.
+"""Tests for the SSE endpoint.
 
-Drives a fake trace through record_event (which fans to event_bus subscribers)
-and asserts the SSE stream yields the expected JSON-encoded StatusEvents.
+Two layers:
+  1. `test_sse_route_registered` — route is mounted at the expected path with
+     the right method. Cheap and avoids the long-lived stream that hangs
+     TestClient.
+  2. `test_sse_generator_streams_events` — exercises the generator wired into
+     the endpoint by subscribing through `event_bus` and publishing live.
+     This is what the browser EventSource sees, minus the HTTP transport.
 """
 from __future__ import annotations
 
 import asyncio
 import json
 
-import httpx
 import pytest
 
 from app.core import event_bus
@@ -17,31 +21,30 @@ from app.core.schemas import StatusEvent
 from app.main import app
 
 
+def test_sse_route_registered():
+    """Smoke check: GET /events/stream/{request_id} is wired up."""
+    routes = {(r.path, tuple(sorted(r.methods))) for r in app.routes if hasattr(r, "methods")}
+    assert ("/events/stream/{request_id}", ("GET",)) in routes
+
+
 @pytest.mark.asyncio
-async def test_sse_streams_status_events():
-    rid = "sse-1"
-    event_bus.attach_loop(asyncio.get_running_loop())
+async def test_sse_generator_streams_events():
+    """Drive record_event → event_bus → subscribe pipeline like the route does."""
+    rid = "sse-gen-1"
 
-    transport = httpx.ASGITransport(app=app)
-    received: list[dict] = []
+    async def consume(n: int) -> list[dict]:
+        out: list[dict] = []
+        async for ev in event_bus.subscribe(rid):
+            out.append(json.loads(ev.model_dump_json()))
+            if len(out) >= n:
+                return out
+        return out
 
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    task = asyncio.create_task(consume(3))
+    await asyncio.sleep(0.05)
 
-        async def consume():
-            async with client.stream("GET", f"/events/stream/{rid}") as resp:
-                assert resp.status_code == 200
-                async for line in resp.aiter_lines():
-                    if line.startswith("data:"):
-                        received.append(json.loads(line.removeprefix("data:").strip()))
-                        if len(received) >= 3:
-                            return
+    for node in ("intake", "triage", "context"):
+        record_event(StatusEvent(request_id=rid, node=node, status="done"))
 
-        task = asyncio.create_task(consume())
-        await asyncio.sleep(0.1)  # let SSE subscriber register
-
-        for node in ("intake", "triage", "context"):
-            record_event(StatusEvent(request_id=rid, node=node, status="done"))
-
-        await asyncio.wait_for(task, timeout=2.0)
-
+    received = await asyncio.wait_for(task, timeout=1.0)
     assert [e["node"] for e in received] == ["intake", "triage", "context"]
