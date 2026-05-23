@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ops"
+                  targetNamespace="http://ops/bpmn">
+  <bpmn:process id="OpsProcess" isExecutable="false">
+    <bpmn:startEvent id="intake" name="Intake">
+      <bpmn:outgoing>flow_intake_triage</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="triage" name="Triage">
+      <bpmn:incoming>flow_intake_triage</bpmn:incoming>
+      <bpmn:outgoing>flow_triage_context</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="context" name="Property Context">
+      <bpmn:incoming>flow_triage_context</bpmn:incoming>
+      <bpmn:outgoing>flow_context_vendor</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="vendor" name="Vendor Selection">
+      <bpmn:incoming>flow_context_vendor</bpmn:incoming>
+      <bpmn:outgoing>flow_vendor_risk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="risk_gate" name="Risk Gate">
+      <bpmn:incoming>flow_vendor_risk</bpmn:incoming>
+      <bpmn:outgoing>flow_risk_comms</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="comms" name="Comms">
+      <bpmn:incoming>flow_risk_comms</bpmn:incoming>
+      <bpmn:outgoing>flow_comms_closed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="closed" name="Closed">
+      <bpmn:incoming>flow_comms_closed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_intake_triage" sourceRef="intake" targetRef="triage"/>
+    <bpmn:sequenceFlow id="flow_triage_context" sourceRef="triage" targetRef="context"/>
+    <bpmn:sequenceFlow id="flow_context_vendor" sourceRef="context" targetRef="vendor"/>
+    <bpmn:sequenceFlow id="flow_vendor_risk" sourceRef="vendor" targetRef="risk_gate"/>
+    <bpmn:sequenceFlow id="flow_risk_comms" sourceRef="risk_gate" targetRef="comms"/>
+    <bpmn:sequenceFlow id="flow_comms_closed" sourceRef="comms" targetRef="closed"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="OpsProcess">
+      <bpmndi:BPMNShape id="intake_di" bpmnElement="intake">
+        <dc:Bounds x="60" y="180" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="55" y="223" width="46" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="triage_di" bpmnElement="triage">
+        <dc:Bounds x="150" y="158" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="context_di" bpmnElement="context">
+        <dc:Bounds x="290" y="158" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="vendor_di" bpmnElement="vendor">
+        <dc:Bounds x="430" y="158" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="risk_gate_di" bpmnElement="risk_gate" isMarkerVisible="true">
+        <dc:Bounds x="575" y="173" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="571" y="230" width="58" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="comms_di" bpmnElement="comms">
+        <dc:Bounds x="670" y="158" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="closed_di" bpmnElement="closed">
+        <dc:Bounds x="812" y="180" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="808" y="223" width="44" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_intake_triage_di" bpmnElement="flow_intake_triage">
+        <di:waypoint x="96" y="198"/><di:waypoint x="150" y="198"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_triage_context_di" bpmnElement="flow_triage_context">
+        <di:waypoint x="250" y="198"/><di:waypoint x="290" y="198"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_context_vendor_di" bpmnElement="flow_context_vendor">
+        <di:waypoint x="390" y="198"/><di:waypoint x="430" y="198"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_vendor_risk_di" bpmnElement="flow_vendor_risk">
+        <di:waypoint x="530" y="198"/><di:waypoint x="575" y="198"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_risk_comms_di" bpmnElement="flow_risk_comms">
+        <di:waypoint x="625" y="198"/><di:waypoint x="670" y="198"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_comms_closed_di" bpmnElement="flow_comms_closed">
+        <di:waypoint x="770" y="198"/><di:waypoint x="812" y="198"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
