@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hausmind — Pipeline Visualizer</title>
+<style>
+:root {
+  --bg:        #0d0f16;
+  --surface:   #161921;
+  --surface2:  #1e2130;
+  --border:    #2a2e45;
+  --text:      #e2e8f0;
+  --muted:     #7a849e;
+  --accent:    #6366f1;
+  --green:     #10b981;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --gray:      #4b5563;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Header ── */
+header { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+.tag { font-size: 11px; color: var(--muted); background: var(--surface2); padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); }
+#apiStatus { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+#apiDot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
+
+/* ── Layout ── */
+.main { display: grid; grid-template-columns: 300px 1fr; flex: 1; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-section { padding: 16px; border-bottom: 1px solid var(--border); }
+.sidebar-section:last-child { border-bottom: none; flex: 1; overflow-y: auto; }
+.section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+
+label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; margin-top: 8px; }
+label:first-of-type { margin-top: 0; }
+input, select, textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 9px; font-size: 12px; outline: none; font-family: inherit; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 72px; }
+
+.btn-run { margin-top: 10px; width: 100%; padding: 9px; border-radius: 6px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+.btn-run:hover { opacity: .85; }
+.btn-run:disabled { opacity: .35; cursor: not-allowed; }
+
+.preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.preset { padding: 7px 5px; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 11px; color: var(--muted); text-align: center; transition: all .15s; }
+.preset:hover { border-color: var(--accent); color: var(--text); }
+
+.hist-item { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 6px; cursor: pointer; transition: border-color .15s; }
+.hist-item:hover, .hist-item.active { border-color: var(--accent); }
+.hist-id  { font-size: 10px; color: var(--muted); font-family: monospace; }
+.hist-txt { font-size: 11px; margin: 2px 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 600; }
+.badge-auto   { background: rgba(16,185,129,.15); color: var(--green); }
+.badge-esc    { background: rgba(239,68,68,.15);  color: var(--red);   }
+.badge-pend   { background: rgba(100,100,100,.12); color: var(--muted); }
+
+/* ── Right panel ── */
+.right { display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Pipeline strip ── */
+.pipeline-wrap { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.pipeline-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+#runLabel { margin-left: auto; font-size: 11px; font-weight: 400; color: var(--muted); }
+
+.pipeline { display: flex; align-items: center; gap: 0; }
+.p-node { display: flex; flex-direction: column; align-items: center; }
+.p-box { width: 84px; min-height: 88px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface2); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; text-align: center; position: relative; transition: border-color .4s, box-shadow .4s, opacity .4s; }
+.p-icon { font-size: 20px; }
+.p-name { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-top: 3px; }
+.p-detail { font-size: 9px; color: var(--text); margin-top: 3px; line-height: 1.3; max-width: 76px; word-break: break-word; }
+
+.p-box.pending  { opacity: .35; }
+.p-box.running  { border-color: var(--amber); box-shadow: 0 0 14px rgba(245,158,11,.35); animation: glow-amber 1s infinite; }
+.p-box.done     { border-color: var(--green); }
+.p-box.skipped  { border-color: var(--gray); opacity: .3; }
+.p-box.escalated { border-color: var(--red); box-shadow: 0 0 14px rgba(239,68,68,.35); }
+@keyframes glow-amber { 0%,100% { box-shadow: 0 0 8px rgba(245,158,11,.25); } 50% { box-shadow: 0 0 22px rgba(245,158,11,.6); } }
+
+.p-badge { position: absolute; top: -7px; right: -7px; width: 16px; height: 16px; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.p-badge.done     { background: var(--green); color: #fff; }
+.p-badge.escalated { background: var(--red);  color: #fff; }
+.p-badge.running  { background: var(--amber); color: #000; }
+
+.p-arrow { color: var(--border); font-size: 20px; padding: 0 2px; padding-bottom: 20px; transition: color .4s; }
+.p-arrow.lit { color: var(--green); }
+.p-arrow.esc { color: var(--red); }
+
+/* ── Details ── */
+.details { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+.empty-icon { font-size: 44px; margin-bottom: 10px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.card-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 10px; }
+
+.kv { display: flex; justify-content: space-between; align-items: flex-start; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 12px; }
+.kv:last-child { border-bottom: none; }
+.kv-k { color: var(--muted); white-space: nowrap; }
+.kv-v { font-weight: 500; text-align: right; }
+.kv-v.heating,.kv-v.plumbing,.kv-v.electrical,.kv-v.elevator,.kv-v.access_keys,.kv-v.cleaning { color: var(--accent); }
+.kv-v.emergency,.kv-v.high,.kv-v.angry { color: var(--red); }
+.kv-v.normal,.kv-v.low,.kv-v.calm,.kv-v.neutral { color: var(--green); }
+.kv-v.frustrated { color: var(--amber); }
+
+.msg-box { background: var(--surface2); border-radius: 6px; padding: 10px 12px; font-size: 12px; line-height: 1.65; color: var(--text); margin-top: 6px; }
+
+.conf-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 5px; }
+.conf-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .6s; }
+
+/* Decision hero */
+.decision-hero { text-align: center; padding: 20px 10px; }
+.decision-icon { font-size: 36px; }
+.decision-label { font-size: 15px; font-weight: 700; margin-top: 6px; }
+.decision-label.auto { color: var(--green); }
+.decision-label.esc  { color: var(--red);   }
+.decision-reason { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.rules { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.rule-row { display: flex; gap: 6px; font-size: 11px; padding: 3px 0; }
+.rule-row.hit  { color: var(--red); }
+.rule-row.miss { color: var(--muted); }
+
+.trace-list { list-style: none; }
+.trace-list li { font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; gap: 6px; }
+.trace-list li::before { content: '›'; color: var(--accent); flex-shrink: 0; }
+
+/* Escalation banner */
+.esc-banner { display: none; margin-bottom: 0; }
+.esc-banner.show { display: block; }
+.esc-inner { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3); border-radius: 8px; padding: 12px 16px; display: flex; gap: 10px; align-items: flex-start; margin: 0 24px 0 24px; margin-bottom: 14px; }
+.esc-text strong { color: var(--red); display: block; margin-bottom: 2px; font-size: 13px; }
+.esc-text span { font-size: 12px; color: var(--muted); }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Haus<span>mind</span></div>
+  <span class="tag">Agent Pipeline Visualizer</span>
+  <div id="apiStatus"><div id="apiDot"></div><span id="apiLabel">connecting…</span></div>
+</header>
+
+<div class="main">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="section-title">Submit Request</div>
+      <label>Tenant message</label>
+      <textarea id="rawText" placeholder="e.g. The heating is broken since this morning…"></textarea>
+      <label>Property</label>
+      <input id="propertyHint" value="Musterstrasse 12">
+      <label>Channel</label>
+      <select id="channel">
+        <option value="phone">Phone</option>
+        <option value="sms">SMS</option>
+        <option value="email">Email</option>
+        <option value="chat">Chat</option>
+        <option value="walk_in">Walk-in</option>
+      </select>
+      <label>Sentiment (optional override)</label>
+      <select id="sentiment">
+        <option value="">— auto-detect —</option>
+        <option value="angry">Angry</option>
+        <option value="frustrated">Frustrated</option>
+        <option value="neutral">Neutral</option>
+        <option value="calm">Calm</option>
+      </select>
+      <button class="btn-run" id="runBtn" onclick="submitRequest()">▶ Run Pipeline</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">Quick Scenarios</div>
+      <div class="preset-grid">
+        <div class="preset" onclick="preset('heating')">🔥 Heating</div>
+        <div class="preset" onclick="preset('plumbing')">🚿 Plumbing</div>
+        <div class="preset" onclick="preset('electrical')">⚡ Electrical</div>
+        <div class="preset" onclick="preset('elevator')">🛗 Elevator</div>
+        <div class="preset" onclick="preset('financial')">💶 Financial</div>
+        <div class="preset" onclick="preset('legal')">⚖️ Legal</div>
+        <div class="preset" onclick="preset('emergency')">🚨 Emergency</div>
+        <div class="preset" onclick="preset('angry')">😡 Angry</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">History</div>
+      <div id="histList"><div style="font-size:11px;color:var(--muted)">No requests yet</div></div>
+    </div>
+
+  </div>
+
+  <!-- ── Right panel ── -->
+  <div class="right">
+
+    <!-- Pipeline strip -->
+    <div class="pipeline-wrap">
+      <div class="pipeline-header">
+        🔄 Agent Pipeline
+        <span id="runLabel">–</span>
+      </div>
+      <div class="pipeline" id="pipeline"></div>
+    </div>
+
+    <!-- Escalation banner -->
+    <div class="esc-banner" id="escBanner">
+      <div class="esc-inner">
+        <span style="font-size:22px">🚨</span>
+        <div class="esc-text">
+          <strong>Escalated to Human</strong>
+          <span id="escReason">–</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details area -->
+    <div class="details" id="details">
+      <div class="empty">
+        <div class="empty-icon">🏢</div>
+        <p>Pick a scenario or write a message and click Run</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const BASE = window.location.origin;
+
+const NODES = [
+  { id: 'intake',    icon: '📥', label: 'Intake'    },
+  { id: 'triage',    icon: '🔍', label: 'Triage'    },
+  { id: 'context',   icon: '🏠', label: 'Context'   },
+  { id: 'vendor',    icon: '🔧', label: 'Vendor'    },
+  { id: 'risk_gate', icon: '🛡️', label: 'Risk Gate' },
+  { id: 'comms',     icon: '✉️', label: 'Comms'     },
+  { id: 'closed',    icon: '✅', label: 'Closed'    },
+];
+
+const PRESETS = {
+  heating:    { text: 'The radiator in my flat is cold since this morning. No heat at all.', ch: 'phone' },
+  plumbing:   { text: 'There is a water leak under the kitchen sink, it is getting worse.', ch: 'sms' },
+  electrical: { text: 'The power outlet in the bathroom stopped working, fuse keeps tripping.', ch: 'email' },
+  elevator:   { text: 'The lift is stuck between floors 2 and 3. Nobody inside but hours now.', ch: 'chat' },
+  financial:  { text: 'Why was I charged EUR 820 for a repair I never authorised? Explain this.', ch: 'email' },
+  legal:      { text: 'I want to understand my rights regarding the management contract. I may consult a lawyer.', ch: 'email' },
+  emergency:  { text: 'There is flooding in the basement! Water is pouring through the ceiling!', ch: 'phone' },
+  angry:      { text: 'This is the third time I report this! Unacceptable!!! Nobody ever calls back!!!', ch: 'phone', s: 'angry' },
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
+let history = [];
+let activeId = null;
+
+// ── Pipeline render ──────────────────────────────────────────────────────────
+function renderPipeline(nodeStates = {}, response = null) {
+  const isEsc = response?.decision === 'escalate_human';
+  let html = '';
+  NODES.forEach((n, i) => {
+    const st = nodeStates[n.id] || 'pending';
+    const esc = st === 'done' && n.id === 'risk_gate' && isEsc;
+    const boxClass = esc ? 'escalated' : st;
+    let badge = '';
+    if (st === 'done')    badge = `<div class="p-badge ${esc ? 'escalated' : 'done'}">${esc ? '✕' : '✓'}</div>`;
+    if (st === 'running') badge = `<div class="p-badge running">…</div>`;
+    const detail = nodeStates[n.id + '_detail'] || '';
+    html += `
+      <div class="p-node">
+        <div class="p-box ${boxClass}">
+          ${badge}
+          <div class="p-icon">${n.icon}</div>
+          <div class="p-name">${n.label}</div>
+          ${detail ? `<div class="p-detail">${detail}</div>` : ''}
+        </div>
+      </div>`;
+    if (i < NODES.length - 1) {
+      const arrowIdx = NODES.findIndex(x => x.id === n.id);
+      const nextDone = nodeStates[NODES[i+1]?.id] === 'done';
+      const cls = nextDone ? (isEsc && i >= 3 ? 'esc' : 'lit') : '';
+      html += `<div class="p-arrow ${cls}">›</div>`;
+    }
+  });
+  document.getElementById('pipeline').innerHTML = html;
+}
+
+// ── Animate events replay ────────────────────────────────────────────────────
+function animateEvents(events, response) {
+  const states = {};
+  NODES.forEach(n => states[n.id] = 'pending');
+  renderPipeline(states, response);
+
+  // Build a timeline: for each event, show "running" then after 300ms "done"
+  const steps = [];
+  const seen = new Set();
+  for (const ev of events) {
+    if (ev.status === 'started') steps.push({ node: ev.node, state: 'running', detail: '' });
+    if (ev.status === 'done')    steps.push({ node: ev.node, state: 'done',    detail: fmtDetail(ev.detail) });
+    if (ev.status === 'skipped') steps.push({ node: ev.node, state: 'skipped', detail: '' });
+  }
+
+  let i = 0;
+  function tick() {
+    if (i >= steps.length) {
+      renderPipeline(states, response);
+      return;
+    }
+    const s = steps[i++];
+    states[s.node] = s.state;
+    if (s.detail) states[s.node + '_detail'] = s.detail;
+    renderPipeline(states, response);
+    setTimeout(tick, s.state === 'running' ? 250 : 400);
+  }
+  tick();
+}
+
+function fmtDetail(d) {
+  if (!d) return '';
+  return d.replace(/\//g, ' · ').slice(0, 36);
+}
+
+// ── Submit ───────────────────────────────────────────────────────────────────
+async function submitRequest() {
+  const txt = document.getElementById('rawText').value.trim();
+  if (!txt) { alert('Enter a tenant message'); return; }
+
+  const rid = 'vis-' + Date.now();
+  const body = {
+    request_id: rid,
+    channel: document.getElementById('channel').value,
+    raw_text: txt,
+    property_hint: document.getElementById('propertyHint').value.trim() || undefined,
+  };
+  const s = document.getElementById('sentiment').value;
+  if (s) body.detected_sentiment = s;
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running…';
+  document.getElementById('runLabel').textContent = 'Sending…';
+  document.getElementById('escBanner').classList.remove('show');
+  document.getElementById('details').innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Waiting for orchestrator…</p></div>';
+
+  // Show running pipeline immediately
+  const initStates = {};
+  NODES.forEach(n => initStates[n.id] = 'pending');
+  initStates['intake'] = 'running';
+  renderPipeline(initStates);
+
+  history.unshift({ id: rid, text: txt, decision: null });
+  activeId = rid;
+  renderHistory();
+
+  try {
+    const resp = await fetch(BASE + '/api/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+
+    const h = history.find(x => x.id === rid);
+    if (h) h.decision = data.decision;
+    renderHistory();
+
+    // Fetch status events and animate
+    const sr = await fetch(BASE + '/api/requests/' + rid + '/status');
+    const sd = await sr.json();
+    animateEvents(sd.events || [], data);
+
+    // After animation finishes
+    const isEsc = data.decision === 'escalate_human';
+    const delay = (sd.events?.length || 0) * 650 + 200;
+    setTimeout(() => {
+      document.getElementById('runLabel').textContent = isEsc ? '🚨 Escalated to Human' : '✅ Auto-resolved';
+      if (isEsc) {
+        document.getElementById('escBanner').classList.add('show');
+        document.getElementById('escReason').textContent = data.escalation_reason || 'Human review required.';
+      }
+      renderDetails(data);
+    }, delay);
+
+  } catch (e) {
+    document.getElementById('runLabel').textContent = '❌ Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ Run Pipeline';
+  }
+}
+
+// ── Details render ───────────────────────────────────────────────────────────
+function renderDetails(d) {
+  const diag = d.diagnosis || {};
+  const vp   = d.vendor_plan || {};
+  const isEsc = d.decision === 'escalate_human';
+  const conf  = diag.confidence != null ? Math.round(diag.confidence * 100) : null;
+
+  document.getElementById('details').innerHTML = `<div class="cards">
+
+    ${card('🔍 Diagnosis', `
+      ${kv('Category',  diag.category,  diag.category)}
+      ${kv('Urgency',   diag.urgency,   diag.urgency)}
+      ${kv('Sentiment', diag.sentiment, diag.sentiment)}
+      ${conf != null ? `
+        ${kv('Confidence', conf + '%')}
+        <div class="conf-bar"><div class="conf-fill" style="width:${conf}%"></div></div>
+      ` : ''}
+      ${diag.summary ? `<div class="msg-box" style="margin-top:8px">${diag.summary}</div>` : ''}
+    `)}
+
+    ${card('🛡️ Risk Gate', `
+      <div class="decision-hero">
+        <div class="decision-icon">${isEsc ? '🚨' : '✅'}</div>
+        <div class="decision-label ${isEsc ? 'esc' : 'auto'}">${isEsc ? 'Escalate to Human' : 'Auto Resolve'}</div>
+        ${isEsc ? `<div class="decision-reason">${d.escalation_reason || ''}</div>` : ''}
+      </div>
+      <div class="rules">
+        ${rule('Legal topic',          diag.category   === 'legal')}
+        ${rule('Financial topic',      diag.category   === 'financial')}
+        ${rule('Angry sentiment',      diag.sentiment  === 'angry')}
+        ${vp.estimated_cost_eur ? rule(
+            'Cost €' + vp.estimated_cost_eur + ' > approval threshold',
+            isEsc && !!d.escalation_reason?.includes('threshold')
+          ) : ''}
+      </div>
+    `)}
+
+    ${vp.vendor_name ? card('🔧 Vendor Plan', `
+      ${kv('Vendor',   vp.vendor_name)}
+      ${kv('Window',   vp.proposed_window)}
+      ${kv('Est. Cost','€' + vp.estimated_cost_eur)}
+      ${kv('Vendor ID', vp.vendor_id)}
+    `) : ''}
+
+    ${d.tenant_message ? card('💬 Tenant Message', `
+      <div class="msg-box">${d.tenant_message}</div>
+    `) : ''}
+
+    ${d.vendor_message ? card('📋 Vendor Work Order', `
+      <div class="msg-box">${d.vendor_message}</div>
+    `) : ''}
+
+    ${d.trace?.length ? card('📝 Agent Trace', `
+      <ul class="trace-list">
+        ${d.trace.map(t => `<li>${t}</li>`).join('')}
+      </ul>
+    `) : ''}
+
+  </div>`;
+}
+
+function card(title, body) {
+  return `<div class="card"><div class="card-title">${title}</div>${body}</div>`;
+}
+function kv(k, v, cls = '') {
+  if (v == null || v === '') return '';
+  return `<div class="kv"><span class="kv-k">${k}</span><span class="kv-v ${cls}">${v}</span></div>`;
+}
+function rule(label, hit) {
+  return `<div class="rule-row ${hit ? 'hit' : 'miss'}"><span>${hit ? '✕' : '○'}</span><span>${label}</span></div>`;
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('histList');
+  if (!history.length) { el.innerHTML = '<div style="font-size:11px;color:var(--muted)">No requests yet</div>'; return; }
+  el.innerHTML = history.slice(0, 10).map(h => `
+    <div class="hist-item ${h.id === activeId ? 'active' : ''}" onclick="loadHist('${h.id}')">
+      <div class="hist-id">${h.id}</div>
+      <div class="hist-txt">${h.text}</div>
+      <span class="badge ${h.decision === 'auto_resolve' ? 'badge-auto' : h.decision === 'escalate_human' ? 'badge-esc' : 'badge-pend'}">
+        ${h.decision || 'pending'}
+      </span>
+    </div>`).join('');
+}
+
+async function loadHist(rid) {
+  activeId = rid;
+  renderHistory();
+  try {
+    const r = await fetch(BASE + '/api/requests/' + rid + '/status');
+    const d = await r.json();
+    const states = {};
+    for (const ev of d.events || []) {
+      if (ev.status === 'done' || ev.status === 'skipped') {
+        states[ev.node] = ev.status;
+        states[ev.node + '_detail'] = fmtDetail(ev.detail);
+      }
+    }
+    renderPipeline(states);
+    document.getElementById('runLabel').textContent = 'Loaded from history';
+  } catch(e) { console.warn(e); }
+}
+
+// ── Presets ───────────────────────────────────────────────────────────────────
+function preset(key) {
+  const p = PRESETS[key];
+  document.getElementById('rawText').value    = p.text;
+  document.getElementById('channel').value   = p.ch || 'phone';
+  document.getElementById('sentiment').value = p.s  || '';
+}
+
+// ── Health ────────────────────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    await fetch(BASE + '/health');
+    document.getElementById('apiDot').style.background   = 'var(--green)';
+    document.getElementById('apiLabel').textContent = 'API online';
+  } catch {
+    document.getElementById('apiDot').style.background   = 'var(--red)';
+    document.getElementById('apiLabel').textContent = 'API offline';
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderPipeline();
+checkHealth();
+setInterval(checkHealth, 30000);
+</script>
+</body>
+</html>
