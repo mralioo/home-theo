@@ -26,14 +26,16 @@ The Dev 3 glue/realtime/dashboard lane is being built on top of commit-1
 | **T1** event-bus     | `feat/dev3-implementation` | ✅ committed | `app/core/event_bus.py` — sync-safe in-memory pub/sub with 200-event backlog. One-line hook in `repository.record_event` fans events to subscribers. |
 | **T2** SSE endpoint  | `feat/dev3-implementation` | ✅ committed | `GET /events/stream/{request_id}` via `sse-starlette` (15s keepalive ping). Replays backlog + streams live. Verified end-to-end with `curl -N`. |
 | **T3** dashboard v0  | `feat/dev3-implementation` | ⚠️ skeleton landed, full UI in flight | `static/dashboard.{html,js,css}` + `diagram.bpmn` placeholder. **Direction has pivoted away from raw BPMN** — see "Dashboard direction" below. |
-| **T4** ElevenLabs webhook | `feat/dev3-implementation` | ✅ committed | `POST /webhooks/elevenlabs/tool` with `X-Webhook-Secret` auth, pydantic adapter to `InboundRequest`, orchestration kicked via `BackgroundTasks` so the agent gets its stock ack in <1.5s. `app/core/settings.py` via pydantic-settings. |
-| **T5** outbound vendor call | `feat/dev3-implementation` | ⏳ next | Post-call webhook + `POST /actions/call-vendor` via ElevenLabs REST. |
-| **T6** dashboard polish | `feat/dev3-implementation` | ⏳ pending | Role-specific views, ticket card, admin reset, list endpoint. |
+| **T4** ElevenLabs inbound | `feat/dev3-implementation` | ✅ committed | `POST /webhooks/elevenlabs/tool` with `X-Webhook-Secret` auth, pydantic adapter to `InboundRequest`, orchestration kicked via `BackgroundTasks` so the agent gets its stock ack in <1.5s. `app/core/settings.py` via pydantic-settings. |
+| **merge** | — | ✅ | Pulled 5 commits from `main` (Dev 2 lane): `adk_agents/{triage,comms}`, Hausmind production dashboard at `app/static/dashboard.html` (served at `/dashboard`), `Makefile` with 60+ targets, `LOCAL_VERIFICATION.md`, relaxed `requirements.txt` pins (resolves the pre-existing fastapi/google-adk conflict). |
+| **T5** outbound + post-call | `feat/dev3-implementation` | ✅ committed | `app/tools/elevenlabs_outbound.py` async wrapper for `/v1/convai/twilio/outbound-call`, `POST /actions/call-vendor` (admin-secret gated, validates ticket exists), `POST /webhooks/elevenlabs/post-call` attaches transcript summary to ticket. Tests use `httpx.MockTransport` to assert exact wire shape. |
+| **T6** role-aware dashboard SPA | `feat/dev3-implementation` | ⏳ next | Fork Hausmind dashboard into tenant / owner / property-manager / facility-manager views. Shared component layer in `app/static/components/`. |
 | **T7** demo runbook  | `feat/dev3-implementation` | ⏳ pending | `scripts/demo.sh`, `DEMO.md`. |
 
-Test status: 12 tests passing offline. Live smoke verified end-to-end:
-`POST /api/requests` → 7 BPMN-node status events stream over SSE; ElevenLabs
-webhook → stock ack returned + background orchestration completes.
+**Test status: 18 tests passing offline.** Live smoke verified end-to-end:
+`POST /api/requests` → SSE stream delivers all 7 BPMN status events; ElevenLabs
+webhook → stock ack returned + background orchestration completes; outbound
+call mock-test asserts exact ElevenLabs REST payload shape.
 
 ### Dashboard direction
 The original plan was a raw BPMN node-lights viewer for the judges. **That
@@ -59,7 +61,10 @@ chrome bleeding into end-user views.
 | `GET`  | `/api/requests/{id}/status` | Dev 2 | polled list of `StatusEvent`s |
 | `GET`  | `/events/stream/{id}` | Dev 3 (T2) | **SSE** push of `StatusEvent`s — backlog + live |
 | `POST` | `/webhooks/elevenlabs/tool` | Dev 3 (T4) | ElevenLabs server-tool adapter; runs orchestration in background |
-| `GET`  | `/static/*` | Dev 3 (T3) | dashboard assets (`dashboard.html`, `diagram.bpmn`, JS, CSS) |
+| `POST` | `/webhooks/elevenlabs/post-call` | Dev 3 (T5) | ElevenLabs post-call hook; attaches transcript summary to ticket |
+| `POST` | `/actions/call-vendor` | Dev 3 (T5) | place outbound call via ElevenLabs REST (X-Admin-Secret guarded) |
+| `GET`  | `/dashboard` | Dev 2 | Hausmind Pipeline Visualizer (production dashboard, role-aware in T6) |
+| `GET`  | `/static/*` | Dev 3 (T3) | BPMN dev/observability view (`dashboard.html`, `diagram.bpmn`, JS, CSS) |
 
 ## Run locally (offline demo — no keys)
 ```bash
