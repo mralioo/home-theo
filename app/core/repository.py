@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from app.core import event_bus
 from app.core.schemas import StatusEvent
 
 DB_PATH = os.environ.get("DB_PATH", "/data/ops.db")
@@ -83,6 +84,7 @@ def record_event(ev: StatusEvent) -> None:
             "VALUES (?, ?, ?, ?, ?)",
             (ev.request_id, ev.node, ev.status, ev.detail, ev.at.isoformat()),
         )
+    event_bus.publish(ev)
 
 
 def events_for(request_id: str) -> list[dict]:

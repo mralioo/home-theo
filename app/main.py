@@ -9,11 +9,13 @@ Endpoints:
 """
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
 from app.agents.coordinator import handle_request
+from app.core import event_bus
 from app.core.repository import events_for, init_db
 from app.core.schemas import InboundRequest, OrchestratorResponse
 
@@ -21,6 +23,7 @@ from app.core.schemas import InboundRequest, OrchestratorResponse
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    event_bus.attach_loop(asyncio.get_running_loop())
     yield
 
 
