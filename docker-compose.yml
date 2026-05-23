@@ -1,0 +1,16 @@
+services:
+  orchestrator:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Flip to "1" to enable ADK + Claude. Leave unset for the offline demo.
+      USE_LLM: "${USE_LLM:-0}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      LITELLM_MODEL: "${LITELLM_MODEL:-anthropic/claude-sonnet-4-5-20250929}"
+      DB_PATH: "/data/ops.db"
+    volumes:
+      # Persist SQLite across restarts; mount source for hot iteration.
+      - ./data:/data
+      - ./app:/srv/app
+    restart: unless-stopped

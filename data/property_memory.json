@@ -1,0 +1,31 @@
+{
+  "_default": {
+    "property_id": "PROP-000",
+    "property_name": "Unknown property",
+    "manager_name": "Unassigned",
+    "access_notes": "No access notes on file. Contact reporter for entry.",
+    "key_holder": "Unknown",
+    "preferred_vendors": {},
+    "approval_threshold_eur": 500.0,
+    "recent_cases": []
+  },
+  "musterstrasse 12": {
+    "property_id": "PROP-012",
+    "property_name": "Musterstrasse 12, Berlin",
+    "manager_name": "Anna Becker",
+    "access_notes": "Heating room in basement. Key with Frau Meyer, 2nd floor, weekends only.",
+    "key_holder": "Frau Meyer (2nd floor)",
+    "preferred_vendors": {
+      "heating": "thermo-fix-gmbh",
+      "plumbing": "rohr-blitz",
+      "electrical": "elektro-schnell",
+      "elevator": "lift-service-berlin",
+      "cleaning": "sauber-team"
+    },
+    "approval_threshold_eur": 500.0,
+    "recent_cases": [
+      "2025-11: heating pressure loss, resolved by Thermo-Fix, EUR 240",
+      "2025-09: elevator door sensor replaced, EUR 610 (owner-approved)"
+    ]
+  }
+}
