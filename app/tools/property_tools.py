@@ -33,6 +33,50 @@ _CATEGORY_HOURS: dict[str, float] = {
     "cleaning": 2.0,
 }
 
+# Static fallback causes — used when no property-specific incident history exists
+_PROBABLE_CAUSES: dict[str, list[str]] = {
+    "heating": [
+        "Pressure drop in circuit — expansion vessel membrane or relief valve fault",
+        "Air lock after recent top-up or maintenance — bleed radiators",
+        "Thermostat or zone valve stuck — no flow despite correct system pressure",
+        "Boiler ignition or burner fault — check error code on display",
+        "Circulation pump failure — listen for pump noise in plant room",
+    ],
+    "plumbing": [
+        "Lime scale build-up in hot-water lines (common in hard-water areas)",
+        "Blockage in waste pipe — hair, grease, or debris accumulation",
+        "Dripping tap or toilet fill valve worn — replace washers or cartridge",
+        "Pipe joint seeping — check under sinks and at radiator connections",
+    ],
+    "electrical": [
+        "RCD/RCCB trip from appliance fault or moisture ingress",
+        "Overloaded circuit — too many high-draw devices on same MCB",
+        "Faulty light fitting or starter — flickering or no-light fault",
+        "Aging MCB — contact fatigue or spring failure in older fuseboxes",
+    ],
+    "elevator": [
+        "Door sensor dirty or misaligned — most common cause of door faults",
+        "Worn brake pads or brake lining — annual service item",
+        "Buffer lubrication overdue — causes jerky movement in shaft",
+        "Door cam or door clutch worn — doors not opening or closing cleanly",
+    ],
+    "access_keys": [
+        "Cylinder barrel wear from frequent use — replacement likely",
+        "Door closer tension misadjusted — door not latching fully",
+        "Magnetic lock power supply fault — check 12V PSU in controller cabinet",
+        "Access card reader head dirty or worn",
+    ],
+    "cleaning": [
+        "Deep-clean schedule overdue — check last service date",
+        "Waste separation not being followed — resident information required",
+        "Bulk waste deposited — waste collection appointment needed",
+        "Bin room drain blocked or odour from organic waste",
+    ],
+    "financial": [],
+    "legal": [],
+    "other": [],
+}
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -48,6 +92,22 @@ def _recent_cases_from_incidents(incidents: list[dict]) -> list[str]:
     return lines
 
 
+def _probable_causes_from_incidents(incidents: list[dict], category: str) -> list[str]:
+    """Derive cause hints from past incidents matching this category.
+
+    Falls back to static knowledge base when no matching history exists.
+    """
+    causes = []
+    for inc in incidents:
+        if inc.get("category") != category:
+            continue
+        desc = inc.get("description", "")
+        date = inc.get("date", "")[:7]
+        if desc:
+            causes.append(f"Recurring ({date}): {desc[:110]}")
+    return causes or _PROBABLE_CAUSES.get(category, [])
+
+
 def _vendor_doc_to_plan(vendor: dict, category: str) -> VendorPlan:
     rate = vendor.get("hourly_rate_eur", 80.0)
     hours = _CATEGORY_HOURS.get(category, 2.0)
@@ -60,7 +120,9 @@ def _vendor_doc_to_plan(vendor: dict, category: str) -> VendorPlan:
     )
 
 
-def _building_doc_to_context(doc: dict, incidents: list[dict]) -> PropertyContext:
+def _building_doc_to_context(
+    doc: dict, incidents: list[dict], category: str | None = None
+) -> PropertyContext:
     return PropertyContext(
         property_id=doc["id"],
         property_name=doc.get("name", doc["id"]),
@@ -70,13 +132,20 @@ def _building_doc_to_context(doc: dict, incidents: list[dict]) -> PropertyContex
         preferred_vendors=doc.get("preferred_vendors", {}),
         approval_threshold_eur=float(doc.get("approval_threshold_eur", 500.0)),
         recent_cases=_recent_cases_from_incidents(incidents),
+        probable_causes=(
+            _probable_causes_from_incidents(incidents, category) if category else []
+        ),
     )
 
 
 # ── Context service client ────────────────────────────────────────────────────
 
 
-def _ctx_lookup_building(hint: str) -> PropertyContext | None:
+def _ctx_lookup_building(
+    hint: str,
+    category: str | None = None,
+    raw_text: str | None = None,
+) -> PropertyContext | None:
     try:
         r = httpx.get(
             f"{_CTX_URL}/buildings/search",
@@ -88,14 +157,47 @@ def _ctx_lookup_building(hint: str) -> PropertyContext | None:
         if not results:
             return None
         doc = results[0]
-        # Also pull recent incidents for this building
-        ri = httpx.get(
-            f"{_CTX_URL}/incidents/search",
-            params={"building_id": doc["id"], "top_k": 5},
-            timeout=5.0,
-        )
+
+        # Pull category-filtered incidents for probable cause derivation
+        incident_params: dict = {"building_id": doc["id"], "top_k": 5}
+        if category:
+            incident_params["category"] = category
+        ri = httpx.get(f"{_CTX_URL}/incidents/search", params=incident_params, timeout=5.0)
         incidents = ri.json().get("results", []) if ri.is_success else []
-        return _building_doc_to_context(doc, incidents)
+
+        ctx = _building_doc_to_context(doc, incidents, category)
+        rag_enriched = False
+
+        # RAG enrichment: semantic search over all incidents using raw complaint text
+        if raw_text and category:
+            try:
+                pc = httpx.get(
+                    f"{_CTX_URL}/probable-causes/search",
+                    params={
+                        "q": raw_text,
+                        "building_id": doc["id"],
+                        "category": category,
+                        "top_k": 5,
+                    },
+                    timeout=5.0,
+                )
+                if pc.is_success:
+                    rag_causes = pc.json().get("probable_causes", [])
+                    if rag_causes:
+                        ctx.probable_causes = rag_causes
+                        rag_enriched = True
+            except Exception:
+                pass  # RAG enrichment is best-effort; base causes already set
+
+        ctx.retrieval_meta = {
+            "source": "context_service",
+            "building_id": doc["id"],
+            "incidents_fetched": len(incidents),
+            "category_filter": category or "all",
+            "rag_enriched": rag_enriched,
+            "embedding_model": "BAAI/bge-small-en-v1.5",
+        }
+        return ctx
     except Exception as exc:
         logger.warning("Context service unavailable (%s) — using fixture", exc)
         return None
@@ -124,19 +226,38 @@ def _ctx_select_vendor(category: str, preferred_ids: dict) -> VendorPlan | None:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
-def lookup_property_context(property_hint: str | None) -> PropertyContext:
+def lookup_property_context(
+    property_hint: str | None,
+    category: IssueCategory | None = None,
+    raw_text: str | None = None,
+) -> PropertyContext:
     hint = (property_hint or "").strip()
+    cat_str = category.value if category else None
 
     if _CTX_URL and hint:
-        ctx = _ctx_lookup_building(hint)
+        ctx = _ctx_lookup_building(hint, category=cat_str, raw_text=raw_text)
         if ctx:
             return ctx
 
     # Fixture fallback
     data = json.loads(_FIXTURES.read_text())
     key = hint.lower()
+    matched_key = key if key in data else "_default"
     record = data.get(key) or data["_default"]
-    return PropertyContext(**record)
+    ctx = PropertyContext(**record)
+    if cat_str:
+        by_cat = record.get("probable_causes_by_category", {})
+        ctx.probable_causes = by_cat.get(cat_str) or _PROBABLE_CAUSES.get(cat_str, [])
+    ctx.retrieval_meta = {
+        "source": "fixture",
+        "file": "data/property_memory.json",
+        "key_matched": matched_key,
+        "incidents_fetched": len(record.get("incidents", [])),
+        "category_filter": cat_str or "all",
+        "rag_enriched": False,
+        "embedding_model": None,
+    }
+    return ctx
 
 
 def select_vendor(category: IssueCategory, ctx: PropertyContext) -> VendorPlan:

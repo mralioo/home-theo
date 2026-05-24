@@ -95,6 +95,8 @@ class PropertyContext(BaseModel):
     preferred_vendors: dict[str, str]  # category -> vendor_id
     approval_threshold_eur: float
     recent_cases: list[str] = Field(default_factory=list)
+    probable_causes: list[str] = Field(default_factory=list)
+    retrieval_meta: dict = Field(default_factory=dict)
 
 
 class VendorPlan(BaseModel):
@@ -121,6 +123,7 @@ class OrchestratorResponse(BaseModel):
     tenant_message: str | None = None  # drafted by comms agent
     vendor_message: str | None = None
     escalation_reason: str | None = None
+    property_context: PropertyContext | None = None
     trace: list[str] = Field(default_factory=list)  # human-readable steps
 
 

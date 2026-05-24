@@ -214,6 +214,26 @@ canvas#waveCanvas { flex: 1; height: 32px; border-radius: 3px; }
 .rec-transcript.show { display: block; }
 .rec-transcript strong { color: var(--green); display: block; font-size: 9px;
                           text-transform: uppercase; letter-spacing: .6px; margin-bottom: 3px; }
+
+/* ── RAG panels (context_retrieve / context_synth) ──────────────────────── */
+.rag-meta-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+                background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; flex-wrap: wrap; }
+.rag-source { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+              border-radius: 4px; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.rag-source.ctx-svc { background: rgba(59,130,246,.12); color: var(--blue); border: 1px solid rgba(59,130,246,.3); }
+.rag-source.fixture  { background: rgba(100,100,100,.12); color: var(--muted); border: 1px solid var(--border); }
+.rag-source.rag-on   { background: rgba(139,92,246,.12); color: var(--purple); border: 1px solid rgba(139,92,246,.3); }
+.rag-meta-txt { font-size: 11px; color: var(--muted); }
+
+.rag-list { background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.rag-item { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 11px;
+            line-height: 1.55; color: var(--text); display: flex; gap: 10px; align-items: flex-start; }
+.rag-item:last-child { border-bottom: none; }
+.rag-rank { color: var(--blue); font-size: 10px; font-weight: 700; font-family: monospace;
+            flex-shrink: 0; margin-top: 1px; min-width: 22px; }
+.rag-cause-dot { color: var(--purple); font-size: 9px; flex-shrink: 0; margin-top: 3px; }
+
+.type-synth { background: rgba(139,92,246,.15); color: var(--purple); border: 1px solid rgba(139,92,246,.3); }
 </style>
 </head>
 <body>
@@ -346,12 +366,56 @@ const STEP_DEFS = {
     getInput:  (req)          => ({ raw_text: req.raw_text, detected_sentiment: req.detected_sentiment||null }),
     getOutput: (req, r, pl)   => r?.diagnosis ? { category: r.diagnosis.category, urgency: r.diagnosis.urgency, sentiment: r.diagnosis.sentiment, confidence: r.diagnosis.confidence, summary: r.diagnosis.summary } : (pl ? { category: pl.category, urgency: pl.urgency, sentiment: pl.sentiment, summary: pl.payload?.diagnosis?.summary } : null),
   },
-  context: {
-    icon: '🏠', title: 'Property Context', agent: 'PropertyMemoryLookup · ContextService (RAG-ready)',
+  context_retrieve: {
+    icon: '🔎', title: 'Retriever', agent: 'OpenSearch knn_vector + BM25 · BAAI/bge-small-en-v1.5',
     type: 'retrieval',
-    desc: 'Retrieves the "property memory": manager contact, preferred vendors per category, approval threshold, access notes, and recent case history. Currently reads data/property_memory.json fixture — designed to swap for RAG over Firestore/OpenSearch.',
-    getInput:  (req)          => ({ property_hint: req.property_hint||'(none — using _default)' }),
-    getOutput: (req, r, pl)   => { const p = r?.payload?.property || pl?.payload?.property; return p ? { property_name: p.name, manager: p.manager, access_notes: p.access_notes?.slice(0,100)+'…', key_holder: p.key_holder } : null; },
+    desc: 'Vector search over the buildings index (384-dim embeddings). Matches property by hint, then fetches the top-k historical incidents for this property filtered by issue category. Falls back to JSON fixture when context service is unavailable.',
+    getInput:  (req, r, pl)  => ({
+      property_hint:   req.property_hint || '(none — using _default)',
+      category_filter: r?.diagnosis?.category || pl?.category || '(from triage)',
+    }),
+    getOutput: (req, r, pl)  => {
+      const ctx = r?.property_context;
+      if (!ctx) { const d = S.steps['context_retrieve']?.detail; return d ? { detail: d } : null; }
+      const meta = ctx.retrieval_meta || {};
+      return {
+        source:           meta.source || 'fixture',
+        building_id:      ctx.property_id,
+        building_name:    ctx.property_name,
+        manager:          ctx.manager_name,
+        incidents_fetched: meta.incidents_fetched ?? ctx.recent_cases?.length ?? 0,
+        category_filter:  meta.category_filter || 'all',
+        embedding_model:  meta.embedding_model || null,
+        recent_cases:     ctx.recent_cases || [],
+      };
+    },
+  },
+  context_synth: {
+    icon: '🧠', title: 'Synthesizer', agent: 'RAG Cause Synthesis · PropertyMemory Assembler',
+    type: 'synth',
+    desc: 'Assembles the full PropertyContext from retrieved documents. Derives probable causes by semantic matching over incident history — ranks hypotheses by recency and category match. Populates manager contact, access notes, approval threshold, and preferred vendor map.',
+    getInput:  (req, r, pl)  => {
+      const ctx = r?.property_context;
+      return {
+        raw_complaint:       (req.raw_text||'').slice(0, 100) + ((req.raw_text||'').length > 100 ? '…' : ''),
+        building_id:         ctx?.property_id || '(pending retrieval)',
+        incidents_available: ctx?.recent_cases?.length ?? 0,
+        rag_enriched:        ctx?.retrieval_meta?.rag_enriched ?? false,
+      };
+    },
+    getOutput: (req, r, pl)  => {
+      const ctx = r?.property_context;
+      if (!ctx) { const d = S.steps['context_synth']?.detail; return d ? { detail: d } : null; }
+      return {
+        property_name:         ctx.property_name,
+        manager_name:          ctx.manager_name,
+        approval_threshold_eur: ctx.approval_threshold_eur,
+        access_notes:          (ctx.access_notes||'').slice(0,90) + '…',
+        key_holder:            ctx.key_holder,
+        probable_causes_count: ctx.probable_causes?.length || 0,
+        probable_causes:       ctx.probable_causes || [],
+      };
+    },
   },
   vendor: {
     icon: '🔧', title: 'Vendor Selector', agent: 'VendorSelector (rule-based + rate table)',
@@ -383,7 +447,7 @@ const STEP_DEFS = {
   },
 };
 
-const STEP_ORDER = ['intake','triage','context','vendor','risk_gate','comms','closed'];
+const STEP_ORDER = ['intake','triage','context_retrieve','context_synth','vendor','risk_gate','comms','closed'];
 
 const PRESETS = [
   { label: '🥶 Cold coworking', ch:'chat',
@@ -735,6 +799,61 @@ function renderInspector(id) {
   }
   html += `</div>`;
 
+  // ── Retriever panel ──────────────────────────────────────────────────────
+  if (id === 'context_retrieve' && isDone) {
+    const ctx = resp?.property_context || tick?.payload?.property_context;
+    const meta = ctx?.retrieval_meta || {};
+    const src = meta.source || 'fixture';
+
+    // Source badge bar
+    html += `<div class="rag-meta-bar">
+      <span class="rag-source ${src === 'context_service' ? 'ctx-svc' : 'fixture'}">
+        ${src === 'context_service' ? '⚡ OpenSearch' : '📄 Fixture'}
+      </span>`;
+    if (src === 'context_service') {
+      html += `<span class="rag-meta-txt">knn_vector · ${esc(meta.embedding_model||'384-dim')} · category: ${esc(meta.category_filter||'all')}</span>`;
+    } else {
+      html += `<span class="rag-meta-txt">${esc(meta.file||'data/property_memory.json')} · key: ${esc(meta.key_matched||'_default')}</span>`;
+    }
+    if (meta.rag_enriched) html += `<span class="rag-source rag-on">+ Semantic RAG</span>`;
+    html += `</div>`;
+
+    // Top incidents retrieved
+    const cases = ctx?.recent_cases || [];
+    if (cases.length) {
+      html += `<div class="io-section"><div class="io-label">Top Incidents Retrieved (${cases.length})</div>
+        <div class="rag-list">
+          ${cases.map((c,i) => `<div class="rag-item"><span class="rag-rank">#${i+1}</span><span>${esc(c)}</span></div>`).join('')}
+        </div></div>`;
+    }
+  }
+
+  // ── Synthesizer panel ─────────────────────────────────────────────────────
+  if (id === 'context_synth' && isDone) {
+    const ctx = resp?.property_context || tick?.payload?.property_context;
+    const causes = ctx?.probable_causes || [];
+    if (causes.length) {
+      html += `<div class="io-section"><div class="io-label">Probable Causes — RAG-derived (${causes.length})</div>
+        <div class="rag-list">
+          ${causes.map(c => `<div class="rag-item"><span class="rag-cause-dot">▶</span><span>${esc(c)}</span></div>`).join('')}
+        </div></div>`;
+    } else {
+      html += `<div class="io-section"><div class="io-label">Probable Causes</div>
+        <div class="io-waiting" style="--amber:var(--muted)">No incident history for this property + category. Using static knowledge base fallback.</div></div>`;
+    }
+
+    // Property memory summary
+    if (ctx) {
+      html += `<div class="io-section"><div class="io-label">Property Memory</div>
+        <div class="rag-list">
+          <div class="rag-item"><span class="rag-rank">MGR</span><span>${esc(ctx.manager_name||'—')}</span></div>
+          <div class="rag-item"><span class="rag-rank">THR</span><span>EUR ${ctx.approval_threshold_eur ?? '—'} approval threshold</span></div>
+          <div class="rag-item"><span class="rag-rank">KEY</span><span>${esc(ctx.key_holder||'—')}</span></div>
+          <div class="rag-item"><span class="rag-rank">ACC</span><span>${esc((ctx.access_notes||'').slice(0,120))}${(ctx.access_notes||'').length>120?'…':''}</span></div>
+        </div></div>`;
+    }
+  }
+
   // Full messages (comms step)
   if (id === 'comms' && isDone) {
     const tm = resp?.tenant_message || tick?.payload?.tenant_message;
@@ -1071,7 +1190,8 @@ const BPMN_NODE_MAP = {
       { t:'polygon', pts:'246,348 270,318 294,348 270,378' }, // Urgent? gateway
     ],
   },
-  context: { nodes: [] }, // folded into Log & assess in the BPMN
+  context_retrieve: { nodes: [] }, // folded into Log & assess in the BPMN
+  context_synth:    { nodes: [] }, // same BPMN node as retriever
   vendor: {
     nodes: [
       { t:'rect', x:390, y:290, w:120, h:56 }, // Assign contractor
