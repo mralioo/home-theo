@@ -1,4 +1,48 @@
 services:
+
+  # ── Vector store ────────────────────────────────────────────────────────────
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=false
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -v '\"status\":\"red\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # ── Context / RAG service ────────────────────────────────────────────────────
+  context-service:
+    build: ./context_service
+    ports:
+      - "8002:8002"
+    environment:
+      OPENSEARCH_URL: "http://opensearch:9200"
+      DATA_PATH: "/data/seed_data.json"
+    volumes:
+      - ./data:/data
+      - ./context_service:/app   # hot-reload source
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  # ── Orchestrator ─────────────────────────────────────────────────────────────
   orchestrator:
     build: .
     ports:
@@ -8,11 +52,16 @@ services:
       ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       LITELLM_MODEL: "${LITELLM_MODEL:-anthropic/claude-sonnet-4-5-20250929}"
       DB_PATH: "/data/ops.db"
+      CONTEXT_SERVICE_URL: "http://context-service:8002"
     volumes:
       - ./data:/data
       - ./app:/srv/app
+    depends_on:
+      context-service:
+        condition: service_healthy
     restart: unless-stopped
 
+  # ── ADK visual trace UI ──────────────────────────────────────────────────────
   adk-ui:
     build: .
     command: >
@@ -24,6 +73,7 @@ services:
       ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       LITELLM_MODEL: "${LITELLM_MODEL:-anthropic/claude-sonnet-4-5-20250929}"
       ORCHESTRATOR_URL: "http://orchestrator:8080"
+      CONTEXT_SERVICE_URL: "http://context-service:8002"
       PYTHONPATH: "/srv"
     volumes:
       - ./app:/srv/app
@@ -31,3 +81,6 @@ services:
     depends_on:
       - orchestrator
     restart: unless-stopped
+
+volumes:
+  opensearch_data:

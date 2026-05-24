@@ -2,6 +2,8 @@ HOST     ?= localhost
 PORT     ?= 8080
 BASE_URL  = http://$(HOST):$(PORT)
 ADK_URL   = http://$(HOST):8001
+CTX_URL   = http://$(HOST):8002
+OS_URL    = http://$(HOST):9200
 
 # ── Docker ───────────────────────────────────────────────────────────────────
 
@@ -24,6 +26,48 @@ logs-orchestrator:
 
 logs-adk:
 	docker compose logs -f adk-ui
+
+logs-context:
+	docker compose logs -f context-service
+
+logs-opensearch:
+	docker compose logs -f opensearch
+
+# ── Context service ───────────────────────────────────────────────────────────
+# Usage: make ctx-search-building Q="Musterstrasse 12"
+#        make ctx-search-vendor   CAT=heating
+#        make ctx-incidents       BID=PROP-001
+
+.PHONY: ctx-health ctx-search-building ctx-search-vendor ctx-incidents ctx-reindex
+
+ctx-health:
+	curl -s $(CTX_URL)/health | python3 -m json.tool
+
+ctx-search-building:
+	@test -n "$(Q)" || (echo "Usage: make ctx-search-building Q='<text>'"; exit 1)
+	curl -s -G "$(CTX_URL)/buildings/search" --data-urlencode "q=$(Q)" | python3 -m json.tool
+
+ctx-search-vendor:
+	@test -n "$(CAT)" || (echo "Usage: make ctx-search-vendor CAT=heating"; exit 1)
+	curl -s "$(CTX_URL)/vendors/search?category=$(CAT)" | python3 -m json.tool
+
+ctx-incidents:
+	@test -n "$(BID)" || (echo "Usage: make ctx-incidents BID=PROP-001"; exit 1)
+	curl -s "$(CTX_URL)/incidents/search?building_id=$(BID)" | python3 -m json.tool
+
+ctx-semantic:
+	@test -n "$(Q)" || (echo "Usage: make ctx-semantic Q='heating broken' BID=PROP-001"; exit 1)
+	@test -n "$(BID)" || (echo "BID required"; exit 1)
+	curl -s -G "$(CTX_URL)/incidents/semantic" --data-urlencode "q=$(Q)" --data-urlencode "building_id=$(BID)" | python3 -m json.tool
+
+ctx-reindex:
+	curl -s -X POST $(CTX_URL)/admin/reindex | python3 -m json.tool
+
+os-health:
+	curl -s $(OS_URL)/_cluster/health | python3 -m json.tool
+
+os-indices:
+	curl -s "$(OS_URL)/_cat/indices?v"
 
 # ── Health ───────────────────────────────────────────────────────────────────
 
