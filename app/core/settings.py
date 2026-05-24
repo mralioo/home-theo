@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     admin_secret: str = "dev-only-not-secret"
     elevenlabs_api_key: str = ""
     elevenlabs_agent_id_outbound: str = ""
+    elevenlabs_tts_voice_id: str = "pNInz6obpgDQGcFmaJgB"  # Adam — multilingual
     fake_orchestrator: bool = False
 
 

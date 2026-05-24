@@ -234,6 +234,27 @@ canvas#waveCanvas { flex: 1; height: 32px; border-radius: 3px; }
 .rag-cause-dot { color: var(--purple); font-size: 9px; flex-shrink: 0; margin-top: 3px; }
 
 .type-synth { background: rgba(139,92,246,.15); color: var(--purple); border: 1px solid rgba(139,92,246,.3); }
+
+/* ── TTS Audio Player ────────────────────────────────────────────────────── */
+.tts-block { background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.tts-header { padding: 7px 12px; display: flex; align-items: center; gap: 8px; background: var(--surf3); border-bottom: 1px solid var(--border); }
+.tts-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .9px; color: var(--muted); flex: 1; display: flex; align-items: center; gap: 5px; }
+.tts-11badge { font-size: 8px; padding: 1px 5px; border-radius: 3px; background: rgba(59,130,246,.12); color: var(--blue); border: 1px solid rgba(59,130,246,.3); font-weight: 700; letter-spacing: .3px; }
+.tts-voice-sel { background: var(--surf2); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; outline: none; }
+.tts-voice-sel:focus { border-color: var(--accent); }
+.tts-play-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(99,102,241,.12); color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: all .15s; }
+.tts-play-btn:hover:not(:disabled) { background: rgba(99,102,241,.28); transform: scale(1.05); }
+.tts-play-btn:disabled { opacity: .45; cursor: not-allowed; }
+.tts-play-btn.loading { animation: spin-glow 1s infinite; border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,.1); }
+.tts-play-btn.playing { border-color: var(--green); color: var(--green); background: rgba(16,185,129,.12); }
+.tts-body { padding: 11px 13px; font-size: 12px; line-height: 1.75; color: var(--text); white-space: pre-wrap; font-family: inherit; }
+.tts-player-bar { padding: 7px 12px; background: rgba(99,102,241,.06); border-top: 1px solid var(--border); display: none; align-items: center; gap: 9px; }
+.tts-player-bar.show { display: flex; }
+.tts-progress { flex: 1; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; position: relative; }
+.tts-progress:hover { height: 6px; }
+.tts-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--blue)); border-radius: 2px; width: 0%; transition: width .08s linear; pointer-events: none; }
+.tts-time { font-size: 10px; color: var(--muted); font-family: monospace; min-width: 32px; text-align: center; }
+.tts-11logo { font-size: 9px; color: var(--blue); font-weight: 700; opacity: .7; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -854,12 +875,12 @@ function renderInspector(id) {
     }
   }
 
-  // Full messages (comms step)
+  // Full messages (comms step) — with ElevenLabs TTS playback
   if (id === 'comms' && isDone) {
     const tm = resp?.tenant_message || tick?.payload?.tenant_message;
     const vm = resp?.vendor_message || tick?.payload?.vendor_message;
-    if (tm) html += msgBlock('Tenant Message (full)', tm);
-    if (vm) html += msgBlock('Vendor Work Order (full)', vm);
+    if (tm) html += ttsBlock('Tenant Message (full)', tm, 'tenant');
+    if (vm) html += ttsBlock('Vendor Work Order (full)', vm, 'vendor');
   }
 
   body.innerHTML = html;
@@ -916,6 +937,153 @@ function msgBlock(title, txt) {
     <div class="io-label">${esc(title)}</div>
     <div class="json-block" style="line-height:1.8;font-family:inherit;white-space:pre-wrap">${esc(txt)}</div>
   </div>`;
+}
+
+// ── TTS Audio Player ──────────────────────────────────────────────────────────
+const TTS_VOICES = [
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam'      },
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel (DE)'},
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah'     },
+  { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie'   },
+  { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam'      },
+];
+const _ttsCache = {};
+
+function ttsBlock(label, text, blockId) {
+  const voiceOpts = TTS_VOICES.map(v =>
+    `<option value="${v.id}">${esc(v.name)}</option>`).join('');
+  return `
+  <div class="io-section">
+    <div class="io-label">🔊 ${esc(label)}</div>
+    <div class="tts-block" id="tts-${blockId}">
+      <div class="tts-header">
+        <span class="tts-label">ElevenLabs TTS <span class="tts-11badge">11labs</span></span>
+        <select class="tts-voice-sel" id="tts-voice-${blockId}"
+                onchange="_ttsVoiceChange('${blockId}')">${voiceOpts}</select>
+        <button class="tts-play-btn" id="tts-btn-${blockId}"
+                onclick="playTTS('${blockId}')" title="Generate speech & play">▶</button>
+      </div>
+      <div class="tts-body" id="tts-text-${blockId}">${esc(text)}</div>
+      <div class="tts-player-bar" id="tts-bar-${blockId}">
+        <span class="tts-time" id="tts-cur-${blockId}">0:00</span>
+        <div class="tts-progress" id="tts-prog-wrap-${blockId}"
+             onclick="seekTTS('${blockId}', event)">
+          <div class="tts-progress-fill" id="tts-prog-${blockId}"></div>
+        </div>
+        <span class="tts-time" id="tts-dur-${blockId}">—</span>
+        <span class="tts-11logo">11labs</span>
+      </div>
+      <audio id="tts-audio-${blockId}"></audio>
+    </div>
+  </div>`;
+}
+
+function _ttsVoiceChange(blockId) {
+  // Clear cache for this block so next play re-generates with new voice
+  const voiceId = document.getElementById(`tts-voice-${blockId}`)?.value;
+  delete _ttsCache[blockId + '_' + voiceId];
+  // Reset player
+  const audio = document.getElementById(`tts-audio-${blockId}`);
+  if (audio) { audio.pause(); audio.src = ''; }
+  const btn = document.getElementById(`tts-btn-${blockId}`);
+  if (btn) { btn.textContent = '▶'; btn.classList.remove('playing','loading'); }
+  const bar = document.getElementById(`tts-bar-${blockId}`);
+  if (bar) bar.classList.remove('show');
+}
+
+async function playTTS(blockId) {
+  const btn   = document.getElementById(`tts-btn-${blockId}`);
+  const audio = document.getElementById(`tts-audio-${blockId}`);
+  const bar   = document.getElementById(`tts-bar-${blockId}`);
+  const prog  = document.getElementById(`tts-prog-${blockId}`);
+  const cur   = document.getElementById(`tts-cur-${blockId}`);
+  const durEl = document.getElementById(`tts-dur-${blockId}`);
+  const voiceId = document.getElementById(`tts-voice-${blockId}`)?.value
+                  || 'pNInz6obpgDQGcFmaJgB';
+  const cacheKey = blockId + '_' + voiceId;
+
+  // Toggle pause if already playing
+  if (!audio.paused) {
+    audio.pause();
+    btn.textContent = '▶';
+    btn.classList.remove('playing');
+    return;
+  }
+
+  // Resume from cached blob URL
+  if (_ttsCache[cacheKey]) {
+    audio.src = _ttsCache[cacheKey];
+    audio.play();
+    btn.textContent = '⏸';
+    btn.classList.add('playing');
+    bar.classList.add('show');
+    return;
+  }
+
+  // Fetch text from the DOM element
+  const text = document.getElementById(`tts-text-${blockId}`)?.textContent?.trim() || '';
+  if (!text) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  btn.classList.add('loading');
+
+  try {
+    const r = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice_id: voiceId }),
+    });
+    if (!r.ok) {
+      const err = await r.text();
+      throw new Error(err);
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    _ttsCache[cacheKey] = url;
+
+    audio.src = url;
+    audio.play();
+    bar.classList.add('show');
+    btn.textContent = '⏸';
+    btn.classList.remove('loading');
+    btn.classList.add('playing');
+
+    audio.ontimeupdate = () => {
+      if (!audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      prog.style.width = pct + '%';
+      cur.textContent = fmtTime(audio.currentTime);
+      durEl.textContent = fmtTime(audio.duration);
+    };
+    audio.onended = () => {
+      btn.textContent = '▶';
+      btn.classList.remove('playing');
+      prog.style.width = '0%';
+      cur.textContent = '0:00';
+    };
+  } catch(e) {
+    btn.textContent = '❌';
+    btn.title = String(e).slice(0, 120);
+    setTimeout(() => { btn.textContent = '▶'; btn.title = 'Generate speech & play'; btn.classList.remove('loading'); }, 3500);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+function seekTTS(blockId, evt) {
+  const audio   = document.getElementById(`tts-audio-${blockId}`);
+  const wrap    = document.getElementById(`tts-prog-wrap-${blockId}`);
+  if (!audio?.duration || !wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  audio.currentTime = Math.max(0, Math.min(1, (evt.clientX - rect.left) / rect.width)) * audio.duration;
+}
+
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 }
 
 // ── History ───────────────────────────────────────────────────────────────────

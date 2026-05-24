@@ -15,14 +15,16 @@ import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app.agents.coordinator import handle_request
 from app.core import event_bus
 from app.core.repository import events_for, init_db
 from app.core.schemas import InboundRequest, OrchestratorResponse
+from app.core.settings import settings
 from app.routes import actions as actions_route
 from app.routes import elevenlabs as elevenlabs_route
 from app.routes import events as events_route
@@ -69,6 +71,44 @@ def dashboard() -> HTMLResponse:
 @app.get("/app", response_class=HTMLResponse)
 def spa() -> HTMLResponse:
     return HTMLResponse(content=_APP_HTML.read_text())
+
+
+@app.post("/api/tts")
+async def text_to_speech(payload: dict) -> Response:
+    """Call ElevenLabs TTS and stream back MP3 bytes to the dashboard player."""
+    text = payload.get("text", "").strip()
+    voice_id = payload.get("voice_id") or settings.elevenlabs_tts_voice_id
+    if not text:
+        raise HTTPException(status_code=400, detail="text required")
+    if not settings.elevenlabs_api_key:
+        raise HTTPException(status_code=503, detail="ELEVENLABS_API_KEY not configured")
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+            headers={
+                "xi-api-key": settings.elevenlabs_api_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+            },
+            json={
+                "text": text[:5000],
+                "model_id": "eleven_multilingual_v2",
+                "voice_settings": {
+                    "stability": 0.45,
+                    "similarity_boost": 0.80,
+                    "style": 0.15,
+                    "use_speaker_boost": True,
+                },
+            },
+            timeout=30.0,
+        )
+    if not r.is_success:
+        raise HTTPException(status_code=r.status_code, detail=r.text[:300])
+    return Response(
+        content=r.content,
+        media_type="audio/mpeg",
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.post("/api/requests", response_model=OrchestratorResponse)
