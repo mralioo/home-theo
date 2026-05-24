@@ -67,11 +67,28 @@ def handle_request(req: InboundRequest) -> OrchestratorResponse:
         f"sentiment {diag.sentiment.value}"
     )
 
-    # 2. Retrieve property context (property memory)
-    _emit(rid, "context", "started")
-    ctx = lookup_property_context(req.property_hint)
-    _emit(rid, "context", "done", f"{ctx.property_name}, mgr {ctx.manager_name}")
+    # 2a. Retrieve property context from vector DB (or fixture fallback)
+    _emit(rid, "context_retrieve", "started")
+    ctx = lookup_property_context(req.property_hint, diag.category, req.raw_text)
+    meta = ctx.retrieval_meta
+    _emit(
+        rid, "context_retrieve", "done",
+        f"{ctx.property_id} · {meta.get('incidents_fetched', 0)} incidents"
+        f" · {meta.get('source', 'fixture')}"
+    )
+    trace.append(f"Context retrieved: {ctx.property_name} via {meta.get('source', 'fixture')}")
+
+    # 2b. Synthesize probable causes from retrieved incidents
+    _emit(rid, "context_synth", "started")
+    causes_count = len(ctx.probable_causes)
+    _emit(
+        rid, "context_synth", "done",
+        f"{ctx.property_name} · {causes_count} cause{'s' if causes_count != 1 else ''} derived"
+        + (" · RAG-enriched" if meta.get("rag_enriched") else "")
+    )
     trace.append(f"Context: {ctx.property_name} (manager {ctx.manager_name})")
+    if ctx.probable_causes:
+        trace.append(f"Probable causes: {'; '.join(ctx.probable_causes[:2])}")
 
     # 3. Vendor selection (contractor coordination)
     vendor_plan = None
@@ -123,10 +140,12 @@ def handle_request(req: InboundRequest) -> OrchestratorResponse:
             "escalation_reason": reason or None,
             "diagnosis": {"summary": diag.summary, "confidence": diag.confidence},
             "property": {
+                "id": ctx.property_id,
                 "name": ctx.property_name,
                 "manager": ctx.manager_name,
                 "access_notes": ctx.access_notes,
                 "key_holder": ctx.key_holder,
+                "probable_causes": ctx.probable_causes,
             },
         },
     )
@@ -140,5 +159,6 @@ def handle_request(req: InboundRequest) -> OrchestratorResponse:
         tenant_message=msgs.get("tenant"),
         vendor_message=msgs.get("vendor"),
         escalation_reason=reason or None,
+        property_context=ctx,
         trace=trace,
     )

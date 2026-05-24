@@ -7,7 +7,8 @@
     "key_holder": "Unknown",
     "preferred_vendors": {},
     "approval_threshold_eur": 500.0,
-    "recent_cases": []
+    "recent_cases": [],
+    "probable_causes_by_category": {}
   },
   "musterstrasse 12": {
     "property_id": "PROP-012",
@@ -26,7 +27,74 @@
     "recent_cases": [
       "2025-11: heating pressure loss, resolved by Thermo-Fix, EUR 240",
       "2025-09: elevator door sensor replaced, EUR 610 (owner-approved)"
-    ]
+    ],
+    "incidents": [
+      {
+        "date": "2025-11-14",
+        "category": "heating",
+        "description": "Pressure loss in heating circuit; expansion vessel membrane ruptured",
+        "resolution": "Expansion vessel replaced, circuit re-pressurised to 1.5 bar",
+        "cost_eur": 240
+      },
+      {
+        "date": "2025-09-03",
+        "category": "elevator",
+        "description": "Cabin door did not open on 3rd floor; optical door sensor dirty/misaligned",
+        "resolution": "Door sensor strip cleaned and realigned; tested across all floors",
+        "cost_eur": 610
+      },
+      {
+        "date": "2025-04-20",
+        "category": "heating",
+        "description": "Single radiator in flat 4 cold despite system pressure normal; thermostat valve seized",
+        "resolution": "Thermostatic valve replaced, radiator bled",
+        "cost_eur": 95
+      },
+      {
+        "date": "2024-12-01",
+        "category": "plumbing",
+        "description": "Slow drain in ground-floor bathroom; lime scale and hair build-up in waste pipe",
+        "resolution": "Drain rodded and flushed; anti-scale treatment applied",
+        "cost_eur": 80
+      }
+    ],
+    "probable_causes_by_category": {
+      "heating": [
+        "Expansion vessel membrane ruptured — pressure drop pattern matches Nov 2025 incident",
+        "Thermostatic valve seized on individual radiator (Apr 2025 precedent)",
+        "Air lock in circuit after recent maintenance or pressure top-up",
+        "Circulation pump bearings worn (building age: ~1978)",
+        "Boiler ignition fault — check error code on display panel in basement"
+      ],
+      "plumbing": [
+        "Lime scale build-up in hot-water lines (hard water area, recurring)",
+        "Hair and grease blockage in waste pipe — ground-floor drain history (Dec 2024)",
+        "Dripping tap or worn fill valve — replace cartridge or washers",
+        "Pipe joint seeping at radiator or under-sink connection"
+      ],
+      "electrical": [
+        "RCD trip from moisture ingress or faulty appliance",
+        "Overloaded circuit — multiple high-draw devices on one MCB",
+        "Aging fusebox (building: 1978) — MCB contact fatigue",
+        "Faulty light fitting or fluorescent starter"
+      ],
+      "elevator": [
+        "Door sensor dirty or misaligned — identical fault resolved Sep 2025",
+        "Worn door cam or door clutch (high-traffic door cycle count)",
+        "Buffer lubrication overdue — causes jerky movement in shaft",
+        "Annual safety certificate may be due — check last inspection date"
+      ],
+      "access_keys": [
+        "Cylinder wear from high-frequency use — barrel replacement likely",
+        "Door closer tension misadjusted — door not latching fully",
+        "Magnetic lock power supply fault"
+      ],
+      "cleaning": [
+        "Staircase cleaning schedule frequency insufficient for occupancy",
+        "Bulk waste left by residents — waste collection appointment needed",
+        "Bin room odour — organic waste not collected on schedule"
+      ]
+    }
   },
   "the delta campus berlin": {
     "property_id": "PROP-DCB",
@@ -48,7 +116,87 @@
       "2026-03: gym ventilation fan bearings, resolved by Klimatec, EUR 340",
       "2026-02: atrium lift middle unit door sensor, EUR 520",
       "2026-01: 4th-floor event space LED dimmer fault, EUR 180"
-    ]
+    ],
+    "incidents": [
+      {
+        "date": "2026-04-10",
+        "category": "heating",
+        "description": "3rd-floor HVAC compressor seized; refrigerant leak detected on rooftop unit",
+        "resolution": "Compressor replaced, refrigerant recharged, zone re-commissioned",
+        "cost_eur": 1200
+      },
+      {
+        "date": "2026-03-15",
+        "category": "heating",
+        "description": "Gym ventilation fan vibrating loudly; worn fan-shaft bearings",
+        "resolution": "Fan bearings replaced by Klimatec; belt tension adjusted",
+        "cost_eur": 340
+      },
+      {
+        "date": "2026-02-08",
+        "category": "elevator",
+        "description": "Atrium middle lift doors not closing on floor 2; door sensor gap out of tolerance",
+        "resolution": "Door sensor strip realigned and secured; gap set to manufacturer spec",
+        "cost_eur": 520
+      },
+      {
+        "date": "2026-01-22",
+        "category": "electrical",
+        "description": "4th-floor event space LED dimmer flickering and unresponsive on 3 circuits",
+        "resolution": "DALI dimmer driver modules replaced; DALI bus re-addressed",
+        "cost_eur": 180
+      },
+      {
+        "date": "2025-11-05",
+        "category": "heating",
+        "description": "BMS zone valve fault on 2nd floor east wing — valve actuator stuck open",
+        "resolution": "Zone valve actuator replaced; BMS control loop recalibrated",
+        "cost_eur": 290
+      },
+      {
+        "date": "2025-09-18",
+        "category": "plumbing",
+        "description": "HVAC condensate drain on 1st floor AHU blocked — water overflow into ceiling void",
+        "resolution": "Drain cleaned, float switch tested, secondary overflow pan installed",
+        "cost_eur": 210
+      }
+    ],
+    "probable_causes_by_category": {
+      "heating": [
+        "HVAC compressor fault — 3rd-floor unit replaced Apr 2026; adjacent units may be due",
+        "Fan bearing wear in air handling unit — gym AHU precedent Mar 2026",
+        "BMS zone valve actuator stuck — 2nd-floor east wing precedent Nov 2025",
+        "Heat exchanger fouling — service interval may be overdue on older AHUs",
+        "Building automation (BMS) setpoint or sensor drift — check BMS alarm log first"
+      ],
+      "plumbing": [
+        "HVAC condensate drain blocked — AHU drain overflow precedent Sep 2025",
+        "Sprinkler test valve or drain partially open — check plant room",
+        "Lime scale in sanitary hot-water circuit (building age: 2018, hard water)"
+      ],
+      "electrical": [
+        "DALI dimmer driver failure — event space precedent Jan 2026; same driver generation on floors 2-4",
+        "DALI bus addressing error after recent building works",
+        "RCD/RCCB trip — check distribution board in each floor riser",
+        "UPS battery alarm — data room or security UPS may need battery replacement"
+      ],
+      "elevator": [
+        "Door sensor gap out of tolerance — atrium middle lift precedent Feb 2026",
+        "Brake lining wear — annual maintenance check for all 3 atrium lifts",
+        "Door clutch or cam worn from high commercial footfall",
+        "Monthly safety log due — verify last certification date with Lift-Service Berlin"
+      ],
+      "access_keys": [
+        "Access control card reader fault — high-usage entrance readers degrade every 18-24 months",
+        "Magnetic door lock power supply failure — check 12V PSU in door controller cabinet",
+        "Door closer hydraulic seal worn — heavy commercial doors with high cycle count"
+      ],
+      "cleaning": [
+        "Grease trap in kitchen/café area overdue for emptying",
+        "Gym equipment area requires additional deep-clean schedule",
+        "Bin room waste compactor fault — check last service date"
+      ]
+    }
   },
   "delta campus": {
     "property_id": "PROP-DCB",
@@ -70,6 +218,86 @@
       "2026-03: gym ventilation fan bearings, resolved by Klimatec, EUR 340",
       "2026-02: atrium lift middle unit door sensor, EUR 520",
       "2026-01: 4th-floor event space LED dimmer fault, EUR 180"
-    ]
+    ],
+    "incidents": [
+      {
+        "date": "2026-04-10",
+        "category": "heating",
+        "description": "3rd-floor HVAC compressor seized; refrigerant leak detected on rooftop unit",
+        "resolution": "Compressor replaced, refrigerant recharged, zone re-commissioned",
+        "cost_eur": 1200
+      },
+      {
+        "date": "2026-03-15",
+        "category": "heating",
+        "description": "Gym ventilation fan vibrating loudly; worn fan-shaft bearings",
+        "resolution": "Fan bearings replaced by Klimatec; belt tension adjusted",
+        "cost_eur": 340
+      },
+      {
+        "date": "2026-02-08",
+        "category": "elevator",
+        "description": "Atrium middle lift doors not closing on floor 2; door sensor gap out of tolerance",
+        "resolution": "Door sensor strip realigned and secured; gap set to manufacturer spec",
+        "cost_eur": 520
+      },
+      {
+        "date": "2026-01-22",
+        "category": "electrical",
+        "description": "4th-floor event space LED dimmer flickering and unresponsive on 3 circuits",
+        "resolution": "DALI dimmer driver modules replaced; DALI bus re-addressed",
+        "cost_eur": 180
+      },
+      {
+        "date": "2025-11-05",
+        "category": "heating",
+        "description": "BMS zone valve fault on 2nd floor east wing — valve actuator stuck open",
+        "resolution": "Zone valve actuator replaced; BMS control loop recalibrated",
+        "cost_eur": 290
+      },
+      {
+        "date": "2025-09-18",
+        "category": "plumbing",
+        "description": "HVAC condensate drain on 1st floor AHU blocked — water overflow into ceiling void",
+        "resolution": "Drain cleaned, float switch tested, secondary overflow pan installed",
+        "cost_eur": 210
+      }
+    ],
+    "probable_causes_by_category": {
+      "heating": [
+        "HVAC compressor fault — 3rd-floor unit replaced Apr 2026; adjacent units may be due",
+        "Fan bearing wear in air handling unit — gym AHU precedent Mar 2026",
+        "BMS zone valve actuator stuck — 2nd-floor east wing precedent Nov 2025",
+        "Heat exchanger fouling — service interval may be overdue on older AHUs",
+        "Building automation (BMS) setpoint or sensor drift — check BMS alarm log first"
+      ],
+      "plumbing": [
+        "HVAC condensate drain blocked — AHU drain overflow precedent Sep 2025",
+        "Sprinkler test valve or drain partially open — check plant room",
+        "Lime scale in sanitary hot-water circuit (building age: 2018, hard water)"
+      ],
+      "electrical": [
+        "DALI dimmer driver failure — event space precedent Jan 2026; same driver generation on floors 2-4",
+        "DALI bus addressing error after recent building works",
+        "RCD/RCCB trip — check distribution board in each floor riser",
+        "UPS battery alarm — data room or security UPS may need battery replacement"
+      ],
+      "elevator": [
+        "Door sensor gap out of tolerance — atrium middle lift precedent Feb 2026",
+        "Brake lining wear — annual maintenance check for all 3 atrium lifts",
+        "Door clutch or cam worn from high commercial footfall",
+        "Monthly safety log due — verify last certification date with Lift-Service Berlin"
+      ],
+      "access_keys": [
+        "Access control card reader fault — high-usage entrance readers degrade every 18-24 months",
+        "Magnetic door lock power supply failure — check 12V PSU in door controller cabinet",
+        "Door closer hydraulic seal worn — heavy commercial doors with high cycle count"
+      ],
+      "cleaning": [
+        "Grease trap in kitchen/café area overdue for emptying",
+        "Gym equipment area requires additional deep-clean schedule",
+        "Bin room waste compactor fault — check last service date"
+      ]
+    }
   }
 }

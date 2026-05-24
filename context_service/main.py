@@ -8,6 +8,7 @@ Endpoints:
   GET /vendors/search?category=<cat>[&building_id=<id>]
   GET /incidents/search?building_id=<id>[&category=<cat>]
   GET /incidents/semantic?q=<text>&building_id=<id>
+  GET /probable-causes/search?q=<text>&building_id=<id>[&category=<cat>]
   POST /admin/reindex   — re-seeds all indices from the data file
 """
 
@@ -101,6 +102,30 @@ def incidents_semantic(
     except Exception as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     return {"query": q, "building_id": building_id, "results": results}
+
+
+# ── Probable causes (RAG) ─────────────────────────────────────────────────────
+
+
+@app.get("/probable-causes/search")
+def probable_causes_search(
+    q: str = Query(..., description="Raw issue description from tenant or voice layer"),
+    building_id: str = Query(...),
+    category: str | None = Query(None, description="Filter to a specific issue category"),
+    top_k: int = Query(5, ge=1, le=20),
+) -> dict:
+    """Semantic search over past incidents; returns ranked probable cause strings."""
+    try:
+        incidents = searcher.search_incidents_semantic(q, building_id, top_k=top_k)
+        causes = searcher.derive_probable_causes(incidents, category)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    return {
+        "building_id": building_id,
+        "query": q,
+        "category": category,
+        "probable_causes": causes,
+    }
 
 
 # ── Admin ─────────────────────────────────────────────────────────────────────

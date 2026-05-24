@@ -108,6 +108,23 @@ def search_incidents(
     return [hit["_source"] for hit in resp["hits"]["hits"]]
 
 
+def derive_probable_causes(incidents: list[dict], category: str | None = None) -> list[str]:
+    """Extract ranked cause hypotheses from a list of incident documents."""
+    causes = []
+    for inc in incidents:
+        cat = inc.get("category", "")
+        if category and cat != category:
+            continue
+        resolution = inc.get("resolution", "")
+        description = inc.get("description", "")
+        date = inc.get("date", "")[:7]
+        text = resolution or description
+        if text:
+            label = f"{date} [{cat}]" if cat else date
+            causes.append(f"{label}: {text[:120]}")
+    return causes
+
+
 def search_incidents_semantic(query: str, building_id: str, top_k: int = 5) -> list[dict]:
     """Free-text semantic search over incidents for a building."""
     client = get_client()
