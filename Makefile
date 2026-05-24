@@ -240,6 +240,46 @@ elevenlabs-post-call:
 	  -d '{"conversation_id":"el-demo-01","transcript_summary":"Caller reported broken heating on 3rd floor. Dispatch confirmed.","duration_seconds":47.3,"success":true}' \
 	  | python3 -m json.tool
 
+# ── ElevenLabs STT / transcription endpoints ──────────────────────────────────
+# Requires ELEVENLABS_API_KEY to be set in .env
+# Usage:
+#   make stt-url URL=https://example.com/call.mp3
+#   make stt-file FILE=tests/fixtures/call.mp3
+#   make stt-conv CONV_ID=abc123def456
+
+.PHONY: stt-url stt-file stt-conv stt-preview
+
+# Transcribe via public URL → full pipeline
+stt-url:
+	@test -n "$(URL)" || (echo "Usage: make stt-url URL=https://..."; exit 1)
+	curl -s -X POST $(BASE_URL)/api/transcribe/url \
+	  -H 'Content-Type: application/json' \
+	  -d '{"url":"$(URL)","channel":"phone","property_hint":"delta campus","language_code":"de"}' \
+	  | python3 -m json.tool
+
+# Transcribe uploaded audio file → full pipeline
+stt-file:
+	@test -n "$(FILE)" || (echo "Usage: make stt-file FILE=path/to/audio.mp3"; exit 1)
+	curl -s -X POST $(BASE_URL)/api/transcribe/file \
+	  -F "file=@$(FILE)" \
+	  -F "channel=phone" \
+	  -F "property_hint=delta campus" \
+	  -F "language_code=de" \
+	  | python3 -m json.tool
+
+# Pull transcript from ElevenLabs ConvAI conversation → full pipeline
+stt-conv:
+	@test -n "$(CONV_ID)" || (echo "Usage: make stt-conv CONV_ID=<elevenlabs_conversation_id>"; exit 1)
+	curl -s -X POST $(BASE_URL)/api/transcribe/conversation \
+	  -H 'Content-Type: application/json' \
+	  -d '{"conversation_id":"$(CONV_ID)","channel":"phone","property_hint":"delta campus"}' \
+	  | python3 -m json.tool
+
+# Preview ConvAI transcript WITHOUT running the pipeline (useful for debugging)
+stt-preview:
+	@test -n "$(CONV_ID)" || (echo "Usage: make stt-preview CONV_ID=<elevenlabs_conversation_id>"; exit 1)
+	curl -s $(BASE_URL)/api/transcribe/conversation/$(CONV_ID)/preview | python3 -m json.tool
+
 # ── Admin actions ─────────────────────────────────────────────────────────────
 # Usage:  make call-vendor ID=demo-heat-01 PHONE=+4930999888
 

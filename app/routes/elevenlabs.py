@@ -106,14 +106,15 @@ class ElevenLabsPostCall(BaseModel):
 @router.post("/webhooks/elevenlabs/post-call")
 def elevenlabs_post_call(
     body: ElevenLabsPostCall,
+    background: BackgroundTasks,
     x_webhook_secret: str | None = Header(default=None, alias="X-Webhook-Secret"),
 ) -> dict:
     if x_webhook_secret != settings.webhook_secret:
         raise HTTPException(status_code=401, detail="bad webhook secret")
 
-    # Allow the webhook to land even before the inbound-tool call (race), but
-    # if the ticket already exists, enrich the stored payload.
     existing = events_for(body.conversation_id)
+
+    # Enrich/create ticket with post-call metadata
     upsert_ticket(
         body.conversation_id,
         payload={
@@ -125,4 +126,21 @@ def elevenlabs_post_call(
             }
         },
     )
-    return {"ticket_id": body.conversation_id, "matched_existing": bool(existing)}
+
+    # If no tool-call ticket was created mid-conversation but we have a
+    # transcript, run the pipeline now so the dashboard gets a full result.
+    triggered = False
+    if not existing and body.transcript and body.transcript.strip():
+        req = InboundRequest(
+            request_id=body.conversation_id,
+            channel=Channel.phone,
+            raw_text=body.transcript.strip(),
+        )
+        background.add_task(_run_orchestration, req)
+        triggered = True
+
+    return {
+        "ticket_id": body.conversation_id,
+        "matched_existing": bool(existing),
+        "pipeline_triggered": triggered,
+    }

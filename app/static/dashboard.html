@@ -155,6 +155,65 @@ textarea { resize: vertical; min-height: 64px; }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── BPMN tab ─────────────────────────────────────────────────────────────── */
+.itabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.itab  { flex: 1; padding: 8px 4px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; letter-spacing: .4px; text-transform: uppercase; }
+.itab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.itab:hover:not(.active) { color: var(--text); }
+#details-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+#bpmn-panel    { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+
+/* Status bar above the diagram */
+#bpmn-bar { padding: 7px 14px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surf2); gap: 8px; }
+#bpmn-step-pill { font-size: 11px; font-weight: 600; color: var(--muted); flex: 1; }
+#bpmn-step-pill.running   { color: var(--amber); }
+#bpmn-step-pill.done      { color: var(--green); }
+#bpmn-step-pill.escalated { color: var(--red); }
+#bpmn-legend { display: flex; gap: 5px; flex-shrink: 0; }
+.bleg { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: .3px; }
+.bleg.running   { background: rgba(245,158,11,.15); color: var(--amber); border: 1px solid rgba(245,158,11,.35); }
+.bleg.done      { background: rgba(16,185,129,.12);  color: var(--green); border: 1px solid rgba(16,185,129,.3);  }
+.bleg.escalated { background: rgba(239,68,68,.12);   color: var(--red);   border: 1px solid rgba(239,68,68,.3);   }
+
+/* SVG wrapper */
+#bpmn-svg-wrap { flex: 1; overflow: auto; padding: 10px; }
+#bpmn-svg-wrap svg { width: 100%; height: auto; display: block; border-radius: 6px;
+                     background: #f5f4ed; box-shadow: 0 1px 6px rgba(0,0,0,.18); }
+@keyframes bpmn-pulse { 0%,100%{opacity:.6} 50%{opacity:1; filter:drop-shadow(0 0 6px currentColor)} }
+
+/* ── Voice recorder ─────────────────────────────────────────────────────────── */
+.rec-wrap { position: relative; }
+.rec-btn {
+  position: absolute; bottom: 6px; right: 6px;
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surf2); color: var(--muted);
+  cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.rec-btn:hover { border-color: var(--red); color: var(--red); }
+.rec-btn.recording {
+  border-color: var(--red); background: rgba(239,68,68,.18); color: var(--red);
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+.rec-btn.processing { border-color: var(--amber); background: rgba(245,158,11,.15); color: var(--amber); }
+@keyframes rec-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)} 60%{box-shadow:0 0 0 7px rgba(239,68,68,0)} }
+
+.wave-wrap { display: none; margin-top: 5px; background: var(--surf3); border-radius: 5px;
+             border: 1px solid var(--border); padding: 4px 6px; }
+.wave-wrap.active { display: block; }
+.wave-row { display: flex; align-items: center; gap: 8px; }
+.wave-timer { font-size: 10px; font-family: monospace; color: var(--red); font-weight: 700; flex-shrink: 0; }
+.wave-timer.processing { color: var(--amber); }
+canvas#waveCanvas { flex: 1; height: 32px; border-radius: 3px; }
+.rec-hint { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.rec-transcript { margin-top: 5px; padding: 6px 8px; background: rgba(16,185,129,.06);
+                  border: 1px solid rgba(16,185,129,.25); border-radius: 5px;
+                  font-size: 11px; color: var(--text); line-height: 1.5; display: none; }
+.rec-transcript.show { display: block; }
+.rec-transcript strong { color: var(--green); display: block; font-size: 9px;
+                          text-transform: uppercase; letter-spacing: .6px; margin-bottom: 3px; }
 </style>
 </head>
 <body>
@@ -179,7 +238,21 @@ textarea { resize: vertical; min-height: 64px; }
     <div class="sec">
       <div class="sec-title">Submit Request</div>
       <label>Message</label>
-      <textarea id="rawText" placeholder="Describe the issue…"></textarea>
+      <div class="rec-wrap">
+        <textarea id="rawText" placeholder="Describe the issue… or press 🎤 to record" style="padding-right:34px"></textarea>
+        <button class="rec-btn" id="recBtn" onclick="toggleRecording()" title="Record audio — click to start/stop">🎤</button>
+      </div>
+      <div class="wave-wrap" id="waveWrap">
+        <div class="wave-row">
+          <span class="wave-timer" id="waveTimer">0:00</span>
+          <canvas id="waveCanvas" width="200" height="32"></canvas>
+        </div>
+        <div class="rec-hint" id="recHint">Recording… click 🎤 again to stop</div>
+      </div>
+      <div class="rec-transcript" id="recTranscript">
+        <strong>Transcript</strong>
+        <span id="recTranscriptText"></span>
+      </div>
       <label>Property</label>
       <input id="propertyHint" value="The Delta Campus Berlin">
       <label>Channel</label>
@@ -228,12 +301,29 @@ textarea { resize: vertical; min-height: 64px; }
   <!-- ── Inspector ─────────────────────────────────────────────────── -->
   <div class="inspector" id="inspector">
     <div class="pipeline-strip" id="pipelineStrip"></div>
-    <div class="insp-body">
-      <div class="insp-empty">
-        <div class="insp-empty-icon">🔬</div>
-        <div style="font-size:13px">Click a step to inspect its input and output</div>
-        <div style="font-size:11px">Submit a request first to start the pipeline</div>
+    <div class="itabs">
+      <button class="itab active" id="tab-details" onclick="switchTab('details')">🔍 Step Details</button>
+      <button class="itab" id="tab-bpmn" onclick="switchTab('bpmn')">📊 BPMN Flow</button>
+    </div>
+    <div id="details-panel">
+      <div class="insp-body">
+        <div class="insp-empty">
+          <div class="insp-empty-icon">🔬</div>
+          <div style="font-size:13px">Click a step to inspect its input and output</div>
+          <div style="font-size:11px">Submit a request first to start the pipeline</div>
+        </div>
       </div>
+    </div>
+    <div id="bpmn-panel">
+      <div id="bpmn-bar">
+        <span id="bpmn-step-pill">Run a pipeline to see the workflow live</span>
+        <div id="bpmn-legend">
+          <span class="bleg running">Running</span>
+          <span class="bleg done">Done</span>
+          <span class="bleg escalated">Escalated</span>
+        </div>
+      </div>
+      <div id="bpmn-svg-wrap"></div>
     </div>
   </div>
 
@@ -337,6 +427,7 @@ renderPipelineStrip(_initSteps);
 checkApi();
 setInterval(checkApi, 30000);
 loadHistory();
+loadBpmn().then(() => { switchTab('bpmn'); updateBpmn(S.steps, null); });
 
 // ── Preset + form ─────────────────────────────────────────────────────────────
 function applyPreset(i) {
@@ -369,6 +460,8 @@ async function run() {
   startTimer();
   renderStepList();
   renderPipelineStrip(S.steps);
+  switchTab('bpmn');
+  _setBpmnBanner('', 'idle');
   setInspEmpty('Pipeline running — steps will appear as each agent fires');
 
   const btn = document.getElementById('runBtn');
@@ -384,11 +477,13 @@ async function run() {
     S.response = await resp.json();
     const isEsc = S.response.decision === 'escalate_human';
     setRunState(isEsc ? 'escalated' : 'done', isEsc ? '🚨 Escalated to Human' : '✅ Auto-resolved');
+    _setBpmnBanner('closed', isEsc ? 'escalated' : 'done');
     stopTimer();
 
     // Enrich the inspector with the full response
     renderStepList();
     renderPipelineStrip(S.steps, S.response);
+    updateBpmn(S.steps, S.response.decision);
     if (S.selected) renderInspector(S.selected);
 
     // Add to history
@@ -435,6 +530,8 @@ function onEvent(ev) {
 
   renderStepList();
   renderPipelineStrip(S.steps, S.response);
+  updateBpmn(S.steps, S.response?.decision);
+  _setBpmnBanner(ev.node, ev.status === 'started' ? 'running' : (ev.status === 'done' ? 'done' : ev.status));
 
   // Auto-select the currently active step
   if (ev.status === 'started') {
@@ -488,6 +585,9 @@ async function loadTicket(rid) {
 
     renderStepList();
     renderPipelineStrip(S.steps, null);
+    updateBpmn(S.steps, dec);
+    switchTab('bpmn');
+    _setBpmnBanner('closed', dec === 'escalate_human' ? 'escalated' : 'done');
     selectStep('closed');
 
   } catch (e) { console.warn(e); }
@@ -582,9 +682,7 @@ function renderInspector(id) {
   try { inputData  = def.getInput(req, resp, tick); } catch {}
   try { outputData = isDone ? def.getOutput(req, resp, tick) : null; } catch {}
 
-  const insp = document.getElementById('inspector');
-  insp.innerHTML = `
-    <div class="pipeline-strip" id="pipelineStrip"></div>
+  document.getElementById('details-panel').innerHTML = `
     <div class="insp-hdr">
       <div class="insp-icon">${def.icon}</div>
       <div class="insp-desc">
@@ -598,8 +696,8 @@ function renderInspector(id) {
     </div>
     <div class="insp-body" id="insp-body"></div>`;
 
-  // Re-render strip (lost on innerHTML overwrite)
   renderPipelineStrip(S.steps, S.response);
+  updateBpmn(S.steps, resp?.decision || tick?.decision);
 
   const body = document.getElementById('insp-body');
   let html = '';
@@ -649,15 +747,13 @@ function renderInspector(id) {
 }
 
 function setInspEmpty(msg) {
-  document.getElementById('inspector').innerHTML = `
-    <div class="pipeline-strip" id="pipelineStrip"></div>
+  document.getElementById('details-panel').innerHTML = `
     <div class="insp-body">
       <div class="insp-empty">
         <div class="insp-empty-icon">⏳</div>
         <div style="font-size:13px">${esc(msg)}</div>
       </div>
     </div>`;
-  renderPipelineStrip(S.steps, S.response);
 }
 
 // ── JSON pretty printer ───────────────────────────────────────────────────────
@@ -759,6 +855,196 @@ function clip(s, n) {
   return s.length > n ? s.slice(0, n) + '…' : s;
 }
 
+// ── Voice recorder ────────────────────────────────────────────────────────────
+const REC = {
+  mediaRecorder: null,
+  chunks: [],
+  stream: null,
+  audioCtx: null,
+  analyser: null,
+  animId: null,
+  timerIv: null,
+  timerSecs: 0,
+};
+
+async function toggleRecording() {
+  if (REC.mediaRecorder && REC.mediaRecorder.state === 'recording') {
+    _recStop();
+  } else {
+    await _recStart();
+  }
+}
+
+async function _recStart() {
+  try {
+    REC.stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  } catch (e) {
+    alert('Microphone access denied: ' + e.message);
+    return;
+  }
+
+  REC.chunks = [];
+
+  // Pick the best supported MIME type (ElevenLabs accepts all of these)
+  const preferred = [
+    'audio/webm;codecs=opus', 'audio/webm',
+    'audio/ogg;codecs=opus',  'audio/ogg',
+    'audio/mp4',
+  ];
+  const mimeType = preferred.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  REC.mediaRecorder = new MediaRecorder(REC.stream, mimeType ? { mimeType } : {});
+  REC.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) REC.chunks.push(e.data); };
+  REC.mediaRecorder.onstop = _recOnStop;
+  REC.mediaRecorder.start(100);
+
+  // Waveform analyser
+  REC.audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+  const source  = REC.audioCtx.createMediaStreamSource(REC.stream);
+  REC.analyser  = REC.audioCtx.createAnalyser();
+  REC.analyser.fftSize = 128;
+  source.connect(REC.analyser);
+  _recDrawWave();
+
+  // Timer
+  REC.timerSecs = 0;
+  _recTickTimer();
+  REC.timerIv = setInterval(() => {
+    REC.timerSecs++;
+    _recTickTimer();
+    if (REC.timerSecs >= 120) _recStop(); // 2 min hard limit
+  }, 1000);
+
+  // UI
+  document.getElementById('recBtn').className = 'rec-btn recording';
+  document.getElementById('recBtn').textContent = '⏹';
+  document.getElementById('waveWrap').classList.add('active');
+  document.getElementById('recHint').textContent = 'Recording… click ⏹ again to stop';
+  document.getElementById('recTranscript').classList.remove('show');
+  document.getElementById('waveTimer').className = 'wave-timer';
+}
+
+function _recStop() {
+  if (REC.mediaRecorder && REC.mediaRecorder.state !== 'inactive') REC.mediaRecorder.stop();
+  if (REC.stream) REC.stream.getTracks().forEach(t => t.stop());
+  if (REC.timerIv) { clearInterval(REC.timerIv); REC.timerIv = null; }
+  if (REC.animId)  { cancelAnimationFrame(REC.animId); REC.animId = null; }
+  document.getElementById('recBtn').className = 'rec-btn processing';
+  document.getElementById('recBtn').textContent = '⏳';
+  document.getElementById('recHint').textContent = 'Transcribing with ElevenLabs…';
+  document.getElementById('waveTimer').className = 'wave-timer processing';
+}
+
+async function _recOnStop() {
+  const mimeType = REC.mediaRecorder?.mimeType || 'audio/webm';
+  const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : 'webm';
+  const blob = new Blob(REC.chunks, { type: mimeType });
+  const filename = `recording-${Date.now()}.${ext}`;
+
+  const property = document.getElementById('propertyHint').value.trim();
+  const channel  = document.getElementById('channel').value || 'phone';
+  const rid      = 'rec-' + Date.now();
+
+  const form = new FormData();
+  form.append('file', blob, filename);
+  form.append('channel', channel);
+  if (property) form.append('property_hint', property);
+  form.append('language_code', 'de');
+  form.append('request_id', rid);
+
+  // Show recording size in the hint
+  const kb = (blob.size / 1024).toFixed(0);
+  document.getElementById('recHint').textContent = `Sending ${kb} KB to ElevenLabs STT…`;
+
+  try {
+    const resp = await fetch('/api/transcribe/file', { method: 'POST', body: form });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(err.detail || resp.statusText);
+    }
+    const result = await resp.json();
+    _recOnResult(result, rid);
+  } catch (e) {
+    _recReset();
+    setRunState('idle', '❌ STT error: ' + e.message);
+  }
+}
+
+function _recOnResult(result, rid) {
+  // Populate textarea with transcript so user can review/edit
+  const raw = result.trace?.[0]?.replace(/^Intake via \w+:\s*/,'') || result.raw_text || '';
+  document.getElementById('rawText').value = raw;
+
+  // Show transcript badge
+  const tenantMsg = result.tenant_message || '';
+  document.getElementById('recTranscriptText').textContent =
+    raw ? raw.slice(0, 200) + (raw.length > 200 ? '…' : '') : '(no transcript available)';
+  document.getElementById('recTranscript').classList.add('show');
+
+  // Feed the response into the pipeline display (same as run())
+  const isEsc = result.decision === 'escalate_human';
+  S.request  = { request_id: rid, channel: document.getElementById('channel').value, raw_text: raw, property_hint: document.getElementById('propertyHint').value };
+  S.response = result;
+  S.ticket   = null;
+
+  // Mark all steps done since we got a completed response
+  STEP_ORDER.forEach(id => {
+    S.steps[id] = { status: id === 'risk_gate' && isEsc ? 'escalated' : 'done', detail: '' };
+  });
+  // Enrich from trace
+  (result.trace || []).forEach((detail, i) => {
+    const id = STEP_ORDER[i];
+    if (id) S.steps[id].detail = detail;
+  });
+
+  S.history.unshift({ id: rid, txt: raw, ch: document.getElementById('channel').value, decision: result.decision });
+  setRunState(isEsc ? 'escalated' : 'done', isEsc ? '🚨 Escalated to Human' : '✅ Auto-resolved');
+  renderStepList();
+  renderPipelineStrip(S.steps, result);
+  updateBpmn(S.steps, result.decision);
+  renderHistory();
+  selectStep('comms');
+
+  _recReset();
+  document.getElementById('recHint').textContent = `✅ Done  ·  ${(result.vendor_plan?.estimated_cost_eur ?? '—')} EUR`;
+}
+
+function _recReset() {
+  document.getElementById('recBtn').className = 'rec-btn';
+  document.getElementById('recBtn').textContent = '🎤';
+  if (!document.getElementById('waveWrap').classList.contains('active-done')) {
+    document.getElementById('waveWrap').classList.remove('active');
+  }
+  REC.mediaRecorder = null; REC.stream = null;
+}
+
+function _recTickTimer() {
+  const m = Math.floor(REC.timerSecs / 60);
+  const s = String(REC.timerSecs % 60).padStart(2, '0');
+  document.getElementById('waveTimer').textContent = m + ':' + s;
+}
+
+function _recDrawWave() {
+  if (!REC.analyser) return;
+  REC.animId = requestAnimationFrame(_recDrawWave);
+  const canvas = document.getElementById('waveCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const bufLen = REC.analyser.frequencyBinCount;
+  const data   = new Uint8Array(bufLen);
+  REC.analyser.getByteTimeDomainData(data);
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath();
+  const step = W / bufLen;
+  for (let i = 0; i < bufLen; i++) {
+    const y = (data[i] / 128) * (H / 2);
+    i === 0 ? ctx.moveTo(0, y) : ctx.lineTo(i * step, y);
+  }
+  ctx.stroke();
+}
+
 function checkApi() {
   fetch('/health').then(() => {
     document.getElementById('apiDot').style.background = 'var(--green)';
@@ -767,6 +1053,158 @@ function checkApi() {
     document.getElementById('apiDot').style.background = 'var(--red)';
     document.getElementById('apiLbl').textContent = 'API offline';
   });
+}
+
+// ── BPMN tab ──────────────────────────────────────────────────────────────────
+// Node coordinate map — matches rect/circle/polygon positions in the SVG
+// Each pipeline step maps to one or more BPMN shapes to highlight
+const BPMN_NODE_MAP = {
+  intake: {
+    nodes: [
+      { t:'circle', cx:68,  cy:150, r:14 },
+      { t:'rect',   x:106,  y:122, w:120, h:56 },
+    ],
+  },
+  triage: {
+    nodes: [
+      { t:'rect',    x:106,  y:290, w:120, h:56 },
+      { t:'polygon', pts:'246,348 270,318 294,348 270,378' }, // Urgent? gateway
+    ],
+  },
+  context: { nodes: [] }, // folded into Log & assess in the BPMN
+  vendor: {
+    nodes: [
+      { t:'rect', x:390, y:290, w:120, h:56 }, // Assign contractor
+      { t:'rect', x:390, y:600, w:120, h:56 }, // Receive & review job
+    ],
+  },
+  risk_gate: {
+    nodes: [
+      { t:'polygon', pts:'246,348 270,318 294,348 270,378' }, // Urgent? → No path
+      { t:'polygon', pts:'336,318 360,288 384,318 360,348' }, // Merge gateway
+    ],
+    nodes_esc: [
+      { t:'polygon', pts:'246,348 270,318 294,348 270,378' }, // Urgent? → Yes path
+      { t:'rect',    x:230, y:408, w:120, h:56 },             // Escalate & prioritise
+    ],
+  },
+  comms: {
+    nodes: [
+      { t:'rect', x:390, y:680, w:120, h:56 }, // Schedule & notify tenant
+      { t:'rect', x:370, y:122, w:120, h:56 }, // Confirm access & availability
+    ],
+  },
+  closed: {
+    nodes: [
+      { t:'rect',    x:250, y:680, w:120, h:56 },             // Carry out repair on-site
+      { t:'polygon', pts:'156,728 180,698 204,728 180,758' }, // Complete? gateway
+      { t:'rect',    x:530, y:680, w:120, h:56 },             // Submit report & invoice
+      { t:'rect',    x:390, y:430, w:120, h:56 },             // Review & approve invoice
+      { t:'rect',    x:530, y:290, w:120, h:56 },             // Close repair request
+      { t:'rect',    x:510, y:122, w:120, h:56 },             // Review completed repair
+      { t:'circle',  cx:652, cy:150, r:14 },                  // End event
+    ],
+    nodes_esc: [
+      { t:'rect', x:530, y:290, w:120, h:56 }, // Close repair request (still filed)
+    ],
+  },
+};
+
+function switchTab(name) {
+  document.getElementById('tab-details').classList.toggle('active', name === 'details');
+  document.getElementById('tab-bpmn').classList.toggle('active', name === 'bpmn');
+  document.getElementById('details-panel').style.display = name === 'details' ? 'flex' : 'none';
+  document.getElementById('bpmn-panel').style.display   = name === 'bpmn'    ? 'flex' : 'none';
+  if (name === 'bpmn') {
+    loadBpmn().then(() => updateBpmn(S.steps, S.response?.decision || S.ticket?.decision));
+  }
+}
+
+let _bpmnLoaded = false;
+async function loadBpmn() {
+  if (_bpmnLoaded) return;
+  const wrap = document.getElementById('bpmn-svg-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="padding:24px;color:var(--muted);font-size:12px">Loading diagram…</div>';
+  try {
+    const text = await (await fetch('/static/property_repair_bpmn.svg')).text();
+    wrap.innerHTML = text;
+    _bpmnLoaded = true;
+  } catch(e) {
+    wrap.innerHTML = '<div style="padding:20px;color:var(--red);font-size:12px">Could not load BPMN: ' + esc(String(e)) + '</div>';
+  }
+}
+
+function updateBpmn(steps, decision) {
+  const hl = document.getElementById('bpmn-hl');
+  if (!hl) return; // BPMN not yet loaded
+  hl.innerHTML = '';
+  const isEsc = decision === 'escalate_human';
+  const ns = 'http://www.w3.org/2000/svg';
+  for (const stepId of STEP_ORDER) {
+    const st = steps?.[stepId];
+    if (!st || st.status === 'pending') continue;
+    const map = BPMN_NODE_MAP[stepId];
+    if (!map) continue;
+    let nodes;
+    const escDone = isEsc && st.status === 'done';
+    if ((stepId === 'risk_gate' || stepId === 'closed') && escDone && map.nodes_esc) {
+      nodes = map.nodes_esc;
+    } else {
+      nodes = map.nodes;
+    }
+    const effectiveStatus = (stepId === 'risk_gate' && escDone) ? 'escalated' : st.status;
+    for (const node of nodes) hl.appendChild(makeBpmnOverlay(node, effectiveStatus, ns));
+  }
+}
+
+function _setBpmnBanner(stepId, status) {
+  const el = document.getElementById('bpmn-step-pill');
+  if (!el) return;
+  if (!stepId || status === 'idle') {
+    el.className = '';
+    el.textContent = 'Pipeline starting…';
+    return;
+  }
+  const def = STEP_DEF(stepId);
+  const labels = {
+    running:   `⟳  ${def.icon} ${def.title} — running`,
+    done:      `✓  ${def.icon} ${def.title} — done`,
+    escalated: `✕  ${def.icon} ${def.title} — escalated to human`,
+    skipped:   `—  ${def.icon} ${def.title} — skipped`,
+  };
+  el.className = status === 'running' ? 'running' : status === 'escalated' ? 'escalated' : 'done';
+  el.textContent = labels[status] || def.title;
+}
+
+function makeBpmnOverlay(node, status, ns) {
+  const cols = {
+    running:   { fill:'rgba(245,158,11,.32)', stroke:'#f59e0b', sw:4,   anim:true  },
+    done:      { fill:'rgba(16,185,129,.25)',  stroke:'#10b981', sw:3.5, anim:false },
+    escalated: { fill:'rgba(239,68,68,.28)',   stroke:'#ef4444', sw:3.5, anim:false },
+    skipped:   { fill:'rgba(100,100,100,.12)', stroke:'#6b7280', sw:2,   anim:false },
+  };
+  const c = cols[status] || cols.done;
+  let el;
+  if (node.t === 'rect') {
+    el = document.createElementNS(ns, 'rect');
+    el.setAttribute('x', node.x); el.setAttribute('y', node.y);
+    el.setAttribute('width', node.w); el.setAttribute('height', node.h);
+    el.setAttribute('rx', 6);
+  } else if (node.t === 'circle') {
+    el = document.createElementNS(ns, 'circle');
+    el.setAttribute('cx', node.cx); el.setAttribute('cy', node.cy);
+    el.setAttribute('r', node.r + 2);
+  } else {
+    el = document.createElementNS(ns, 'polygon');
+    el.setAttribute('points', node.pts);
+  }
+  el.setAttribute('fill', c.fill);
+  el.setAttribute('stroke', c.stroke);
+  el.setAttribute('stroke-width', c.sw);
+  el.style.pointerEvents = 'none';
+  if (c.anim) el.style.animation = 'bpmn-pulse 1s ease-in-out infinite';
+  return el;
 }
 </script>
 </body>

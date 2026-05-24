@@ -27,6 +27,7 @@ from app.routes import actions as actions_route
 from app.routes import elevenlabs as elevenlabs_route
 from app.routes import events as events_route
 from app.routes import queries as queries_route
+from app.routes import transcribe as transcribe_route
 
 _STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -51,6 +52,7 @@ app.include_router(queries_route.router)
 app.include_router(events_route.router)
 app.include_router(elevenlabs_route.router)
 app.include_router(actions_route.router)
+app.include_router(transcribe_route.router)
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 
