@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY data ./data
 COPY adk_agents ./adk_agents
+COPY static ./static
 
 # Cloud Run injects $PORT (default 8080). Bind to it.
 ENV PORT=8080

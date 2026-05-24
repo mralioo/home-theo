@@ -10,16 +10,16 @@ Endpoints:
   GET /incidents/semantic?q=<text>&building_id=<id>
   POST /admin/reindex   — re-seeds all indices from the data file
 """
+
 from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query
-
 import embedder
 import indexer
 import searcher
+from fastapi import FastAPI, HTTPException, Query
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -37,12 +37,14 @@ app = FastAPI(title="Hausmind Context Service", version="0.1.0", lifespan=lifesp
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
 
 
 # ── Buildings ─────────────────────────────────────────────────────────────────
+
 
 @app.get("/buildings/search")
 def buildings_search(
@@ -58,6 +60,7 @@ def buildings_search(
 
 # ── Vendors ───────────────────────────────────────────────────────────────────
 
+
 @app.get("/vendors/search")
 def vendors_search(
     category: str = Query(..., description="Issue category: heating, plumbing, electrical…"),
@@ -72,6 +75,7 @@ def vendors_search(
 
 
 # ── Incidents ─────────────────────────────────────────────────────────────────
+
 
 @app.get("/incidents/search")
 def incidents_search(
@@ -100,6 +104,7 @@ def incidents_semantic(
 
 
 # ── Admin ─────────────────────────────────────────────────────────────────────
+
 
 @app.post("/admin/reindex")
 def reindex() -> dict:

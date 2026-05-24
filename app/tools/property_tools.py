@@ -22,21 +22,26 @@ from app.core.schemas import IssueCategory, PropertyContext, VendorPlan
 logger = logging.getLogger(__name__)
 
 _FIXTURES = Path(__file__).resolve().parent.parent.parent / "data" / "property_memory.json"
-_CTX_URL  = os.environ.get("CONTEXT_SERVICE_URL", "").rstrip("/")
+_CTX_URL = os.environ.get("CONTEXT_SERVICE_URL", "").rstrip("/")
 
 _CATEGORY_HOURS: dict[str, float] = {
-    "heating": 3.0, "plumbing": 2.5, "electrical": 2.5,
-    "elevator": 6.0, "access_keys": 1.0, "cleaning": 2.0,
+    "heating": 3.0,
+    "plumbing": 2.5,
+    "electrical": 2.5,
+    "elevator": 6.0,
+    "access_keys": 1.0,
+    "cleaning": 2.0,
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _recent_cases_from_incidents(incidents: list[dict]) -> list[str]:
     lines = []
     for inc in incidents[:5]:
         date = inc.get("date", "")[:7]
-        cat  = inc.get("category", "")
-        res  = inc.get("resolution", "")[:60]
+        cat = inc.get("category", "")
+        res = inc.get("resolution", "")[:60]
         cost = inc.get("cost_eur")
         cost_str = f", EUR {cost:.0f}" if cost else ""
         lines.append(f"{date}: {cat} — {res}{cost_str}")
@@ -44,7 +49,7 @@ def _recent_cases_from_incidents(incidents: list[dict]) -> list[str]:
 
 
 def _vendor_doc_to_plan(vendor: dict, category: str) -> VendorPlan:
-    rate  = vendor.get("hourly_rate_eur", 80.0)
+    rate = vendor.get("hourly_rate_eur", 80.0)
     hours = _CATEGORY_HOURS.get(category, 2.0)
     surcharge = 1 + vendor.get("emergency_surcharge_pct", 0) / 100
     return VendorPlan(
@@ -69,6 +74,7 @@ def _building_doc_to_context(doc: dict, incidents: list[dict]) -> PropertyContex
 
 
 # ── Context service client ────────────────────────────────────────────────────
+
 
 def _ctx_lookup_building(hint: str) -> PropertyContext | None:
     try:
@@ -117,6 +123,7 @@ def _ctx_select_vendor(category: str, preferred_ids: dict) -> VendorPlan | None:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+
 def lookup_property_context(property_hint: str | None) -> PropertyContext:
     hint = (property_hint or "").strip()
 
@@ -127,7 +134,7 @@ def lookup_property_context(property_hint: str | None) -> PropertyContext:
 
     # Fixture fallback
     data = json.loads(_FIXTURES.read_text())
-    key  = hint.lower()
+    key = hint.lower()
     record = data.get(key) or data["_default"]
     return PropertyContext(**record)
 

@@ -116,7 +116,19 @@ def handle_request(req: InboundRequest) -> OrchestratorResponse:
         urgency=diag.urgency.value,
         sentiment=diag.sentiment.value,
         decision=decision.value,
-        payload={"vendor": vendor_plan.model_dump() if vendor_plan else None},
+        payload={
+            "vendor": vendor_plan.model_dump() if vendor_plan else None,
+            "tenant_message": msgs.get("tenant"),
+            "vendor_message": msgs.get("vendor"),
+            "escalation_reason": reason or None,
+            "diagnosis": {"summary": diag.summary, "confidence": diag.confidence},
+            "property": {
+                "name": ctx.property_name,
+                "manager": ctx.manager_name,
+                "access_notes": ctx.access_notes,
+                "key_holder": ctx.key_holder,
+            },
+        },
     )
     _emit(rid, "closed", "done", "ticket stored")
 

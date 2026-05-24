@@ -1,4 +1,5 @@
 """Thin wrapper around fastembed. Falls back gracefully if unavailable."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +15,7 @@ def load_model() -> None:
     global _model
     try:
         from fastembed import TextEmbedding
+
         _model = TextEmbedding(_MODEL_NAME)
         logger.info("Embedding model loaded: %s", _MODEL_NAME)
     except Exception as exc:

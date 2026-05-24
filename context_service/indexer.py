@@ -5,6 +5,7 @@ Indices:
   vendors    — contractor profiles with rates + reviews
   incidents  — historical maintenance cases per building
 """
+
 from __future__ import annotations
 
 import json
@@ -12,15 +13,14 @@ import logging
 import os
 from pathlib import Path
 
+import embedder
 from opensearchpy import OpenSearch
 from tenacity import retry, stop_after_attempt, wait_fixed
-
-import embedder
 
 logger = logging.getLogger(__name__)
 
 DATA_PATH = os.environ.get("DATA_PATH", "/data/seed_data.json")
-OS_URL    = os.environ.get("OPENSEARCH_URL", "http://localhost:9200")
+OS_URL = os.environ.get("OPENSEARCH_URL", "http://localhost:9200")
 
 DIM = embedder.EMBED_DIM
 
@@ -30,22 +30,22 @@ BUILDINGS_MAPPING = {
     "settings": {"index": {"knn": True}},
     "mappings": {
         "properties": {
-            "id":                     {"type": "keyword"},
-            "name":                   {"type": "text", "analyzer": "standard"},
-            "address":                {"type": "text", "analyzer": "standard"},
-            "city":                   {"type": "keyword"},
-            "type":                   {"type": "keyword"},
-            "manager_name":           {"type": "text"},
-            "manager_email":          {"type": "keyword"},
-            "manager_phone":          {"type": "keyword"},
-            "units":                  {"type": "integer"},
-            "built_year":             {"type": "integer"},
-            "access_notes":           {"type": "text"},
-            "key_holder":             {"type": "text"},
+            "id": {"type": "keyword"},
+            "name": {"type": "text", "analyzer": "standard"},
+            "address": {"type": "text", "analyzer": "standard"},
+            "city": {"type": "keyword"},
+            "type": {"type": "keyword"},
+            "manager_name": {"type": "text"},
+            "manager_email": {"type": "keyword"},
+            "manager_phone": {"type": "keyword"},
+            "units": {"type": "integer"},
+            "built_year": {"type": "integer"},
+            "access_notes": {"type": "text"},
+            "key_holder": {"type": "text"},
             "approval_threshold_eur": {"type": "float"},
-            "preferred_vendors":      {"type": "object", "enabled": True},
-            "description":            {"type": "text"},
-            "embedding":              {"type": "knn_vector", "dimension": DIM},
+            "preferred_vendors": {"type": "object", "enabled": True},
+            "description": {"type": "text"},
+            "embedding": {"type": "knn_vector", "dimension": DIM},
         }
     },
 }
@@ -54,21 +54,21 @@ VENDORS_MAPPING = {
     "settings": {"index": {"knn": True}},
     "mappings": {
         "properties": {
-            "id":                       {"type": "keyword"},
-            "name":                     {"type": "text", "analyzer": "standard"},
-            "categories":               {"type": "keyword"},
-            "city":                     {"type": "keyword"},
-            "phone":                    {"type": "keyword"},
-            "email":                    {"type": "keyword"},
-            "hourly_rate_eur":          {"type": "float"},
-            "emergency_surcharge_pct":  {"type": "integer"},
-            "rating":                   {"type": "float"},
-            "review_count":             {"type": "integer"},
-            "avg_response_time_hours":  {"type": "float"},
-            "languages":                {"type": "keyword"},
-            "certifications":           {"type": "text"},
-            "description":              {"type": "text"},
-            "embedding":                {"type": "knn_vector", "dimension": DIM},
+            "id": {"type": "keyword"},
+            "name": {"type": "text", "analyzer": "standard"},
+            "categories": {"type": "keyword"},
+            "city": {"type": "keyword"},
+            "phone": {"type": "keyword"},
+            "email": {"type": "keyword"},
+            "hourly_rate_eur": {"type": "float"},
+            "emergency_surcharge_pct": {"type": "integer"},
+            "rating": {"type": "float"},
+            "review_count": {"type": "integer"},
+            "avg_response_time_hours": {"type": "float"},
+            "languages": {"type": "keyword"},
+            "certifications": {"type": "text"},
+            "description": {"type": "text"},
+            "embedding": {"type": "knn_vector", "dimension": DIM},
         }
     },
 }
@@ -77,26 +77,27 @@ INCIDENTS_MAPPING = {
     "settings": {"index": {"knn": True}},
     "mappings": {
         "properties": {
-            "id":              {"type": "keyword"},
-            "building_id":     {"type": "keyword"},
-            "date":            {"type": "date"},
-            "category":        {"type": "keyword"},
-            "urgency":         {"type": "keyword"},
-            "description":     {"type": "text"},
-            "resolution":      {"type": "text"},
-            "vendor_id":       {"type": "keyword"},
-            "vendor_name":     {"type": "keyword"},
-            "cost_eur":        {"type": "float"},
-            "duration_days":   {"type": "integer"},
-            "tenant_sentiment":{"type": "keyword"},
-            "escalated":       {"type": "boolean"},
-            "embedding":       {"type": "knn_vector", "dimension": DIM},
+            "id": {"type": "keyword"},
+            "building_id": {"type": "keyword"},
+            "date": {"type": "date"},
+            "category": {"type": "keyword"},
+            "urgency": {"type": "keyword"},
+            "description": {"type": "text"},
+            "resolution": {"type": "text"},
+            "vendor_id": {"type": "keyword"},
+            "vendor_name": {"type": "keyword"},
+            "cost_eur": {"type": "float"},
+            "duration_days": {"type": "integer"},
+            "tenant_sentiment": {"type": "keyword"},
+            "escalated": {"type": "boolean"},
+            "embedding": {"type": "knn_vector", "dimension": DIM},
         }
     },
 }
 
 
 # ── Client ────────────────────────────────────────────────────────────────────
+
 
 def get_client() -> OpenSearch:
     return OpenSearch(OS_URL, use_ssl=False, verify_certs=False)
@@ -112,6 +113,7 @@ def wait_for_opensearch() -> OpenSearch:
 
 # ── Index helpers ─────────────────────────────────────────────────────────────
 
+
 def _ensure_index(client: OpenSearch, name: str, mapping: dict) -> None:
     if not client.indices.exists(index=name):
         client.indices.create(index=name, body=mapping)
@@ -126,6 +128,7 @@ def _index_doc(client: OpenSearch, index: str, doc_id: str, body: dict) -> None:
 
 # ── Seeding ───────────────────────────────────────────────────────────────────
 
+
 def _embed_text(*parts: str) -> list[float] | None:
     text = " ".join(p for p in parts if p)
     return embedder.embed(text)
@@ -136,7 +139,7 @@ def seed_all() -> None:
     client = wait_for_opensearch()
 
     _ensure_index(client, "buildings", BUILDINGS_MAPPING)
-    _ensure_index(client, "vendors",   VENDORS_MAPPING)
+    _ensure_index(client, "vendors", VENDORS_MAPPING)
     _ensure_index(client, "incidents", INCIDENTS_MAPPING)
 
     data_file = Path(DATA_PATH)

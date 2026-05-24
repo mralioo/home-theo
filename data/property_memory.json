@@ -27,5 +27,49 @@
       "2025-11: heating pressure loss, resolved by Thermo-Fix, EUR 240",
       "2025-09: elevator door sensor replaced, EUR 610 (owner-approved)"
     ]
+  },
+  "the delta campus berlin": {
+    "property_id": "PROP-DCB",
+    "property_name": "The Delta Campus Berlin",
+    "manager_name": "Theo Rautenberg",
+    "access_notes": "5-floor commercial campus. Facility office on ground floor (room G-01). Basement plant room access via security desk. After-hours emergency: call facility hotline +4930555000.",
+    "key_holder": "Security desk (24/7), ground floor lobby",
+    "preferred_vendors": {
+      "heating": "klimatec-berlin",
+      "plumbing": "rohr-blitz",
+      "electrical": "elektro-schnell",
+      "elevator": "lift-service-berlin",
+      "access_keys": "delta-security-gmbh",
+      "cleaning": "delta-facility-services"
+    },
+    "approval_threshold_eur": 800.0,
+    "recent_cases": [
+      "2026-04: 3rd-floor HVAC compressor replaced, EUR 1200 (owner-approved)",
+      "2026-03: gym ventilation fan bearings, resolved by Klimatec, EUR 340",
+      "2026-02: atrium lift middle unit door sensor, EUR 520",
+      "2026-01: 4th-floor event space LED dimmer fault, EUR 180"
+    ]
+  },
+  "delta campus": {
+    "property_id": "PROP-DCB",
+    "property_name": "The Delta Campus Berlin",
+    "manager_name": "Theo Rautenberg",
+    "access_notes": "5-floor commercial campus. Facility office on ground floor (room G-01). Basement plant room access via security desk. After-hours emergency: call facility hotline +4930555000.",
+    "key_holder": "Security desk (24/7), ground floor lobby",
+    "preferred_vendors": {
+      "heating": "klimatec-berlin",
+      "plumbing": "rohr-blitz",
+      "electrical": "elektro-schnell",
+      "elevator": "lift-service-berlin",
+      "access_keys": "delta-security-gmbh",
+      "cleaning": "delta-facility-services"
+    },
+    "approval_threshold_eur": 800.0,
+    "recent_cases": [
+      "2026-04: 3rd-floor HVAC compressor replaced, EUR 1200 (owner-approved)",
+      "2026-03: gym ventilation fan bearings, resolved by Klimatec, EUR 340",
+      "2026-02: atrium lift middle unit door sensor, EUR 520",
+      "2026-01: 4th-floor event space LED dimmer fault, EUR 180"
+    ]
   }
 }

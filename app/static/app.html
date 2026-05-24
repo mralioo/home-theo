@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hausmind — Operations Platform</title>
+<style>
+:root {
+  --bg:      #0d0f16;
+  --surface: #161921;
+  --surf2:   #1e2130;
+  --border:  #2a2e45;
+  --text:    #e2e8f0;
+  --muted:   #7a849e;
+  --accent:  #6366f1;
+  --green:   #10b981;
+  --amber:   #f59e0b;
+  --red:     #ef4444;
+  --blue:    #3b82f6;
+  --gray:    #4b5563;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+header {
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; height: 48px;
+}
+.logo {
+  padding: 0 20px; font-size: 17px; font-weight: 700; letter-spacing: -.5px;
+  border-right: 1px solid var(--border); display: flex; align-items: center; flex-shrink: 0;
+}
+.logo span { color: var(--accent); }
+.role-tabs { display: flex; flex: 1; }
+.role-tab {
+  padding: 0 20px; font-size: 13px; color: var(--muted); cursor: pointer;
+  border: none; background: transparent; border-bottom: 2px solid transparent;
+  display: flex; align-items: center; gap: 7px; transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.role-tab:hover { color: var(--text); }
+.role-tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.role-tab .tab-badge {
+  background: var(--red); color: #fff; border-radius: 99px;
+  font-size: 10px; font-weight: 700; padding: 0 5px; min-width: 16px; text-align: center;
+  display: none;
+}
+.role-tab .tab-badge.show { display: inline-block; }
+.hdr-right {
+  padding: 0 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--muted); border-left: 1px solid var(--border); flex-shrink: 0;
+}
+.api-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
+.btn-ico {
+  border: 1px solid var(--border); background: var(--surf2); color: var(--muted);
+  border-radius: 5px; padding: 3px 8px; font-size: 11px; cursor: pointer;
+}
+.btn-ico:hover { color: var(--text); }
+a.btn-ico { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.main { display: grid; grid-template-columns: 320px 1fr; flex: 1; overflow: hidden; }
+
+/* ── Left panel ──────────────────────────────────────────────────────────── */
+.list-panel {
+  border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-hdr { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.panel-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--muted); margin-bottom: 8px;
+}
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px; }
+.stats-grid.two { grid-template-columns: 1fr 1fr; }
+.stat {
+  background: var(--surf2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 4px; text-align: center;
+}
+.stat-n { font-size: 17px; font-weight: 700; line-height: 1; }
+.stat-l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+.stat.red   .stat-n { color: var(--red);   }
+.stat.green .stat-n { color: var(--green);  }
+.stat.amber .stat-n { color: var(--amber);  }
+.stat.blue  .stat-n { color: var(--blue);   }
+.filter-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip {
+  padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border);
+  font-size: 11px; color: var(--muted); cursor: pointer; background: transparent; transition: all .15s;
+}
+.chip:hover, .chip.on { border-color: var(--accent); color: var(--text); background: rgba(99,102,241,.1); }
+
+/* Submit form */
+.form-wrap {
+  padding: 10px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: none;
+}
+.form-wrap.open { display: block; }
+label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 8px 0 3px; }
+label:first-of-type { margin-top: 0; }
+input, select, textarea {
+  width: 100%; background: var(--surf2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 5px; padding: 6px 8px; font-size: 12px; outline: none; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 60px; }
+.presets-row { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
+.preset-chip {
+  padding: 3px 7px; font-size: 10px; border: 1px solid var(--border);
+  border-radius: 4px; cursor: pointer; color: var(--muted); background: var(--surface);
+}
+.preset-chip:hover { border-color: var(--accent); color: var(--text); }
+.btn-primary {
+  width: 100%; padding: 8px; background: var(--accent); color: #fff; border: none;
+  border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;
+}
+.btn-primary:hover { opacity: .85; }
+.btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+.btn-outline {
+  width: 100%; padding: 7px; background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; margin-bottom: 8px;
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--text); }
+
+/* Ticket list */
+.ticket-list { flex: 1; overflow-y: auto; padding: 6px; }
+.ticket-item {
+  padding: 9px 11px; border-radius: 7px; border: 1px solid var(--border);
+  background: var(--surface); margin-bottom: 4px; cursor: pointer; transition: border-color .15s;
+}
+.ticket-item:hover { border-color: var(--accent); }
+.ticket-item.sel { border-color: var(--accent); background: var(--surf2); }
+.ticket-item.esc { border-left: 3px solid var(--red); }
+.ticket-item.urg { border-left: 3px solid var(--amber); }
+.ti-top { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+.ti-id { font-size: 10px; color: var(--muted); font-family: monospace; }
+.ti-txt { font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ti-meta { display: flex; align-items: center; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+
+/* Badges */
+.bdg {
+  display: inline-flex; align-items: center; padding: 1px 7px;
+  border-radius: 99px; font-size: 10px; font-weight: 600;
+}
+.bdg-auto { background: rgba(16,185,129,.12); color: var(--green); }
+.bdg-esc  { background: rgba(239,68,68,.12);  color: var(--red);   }
+.bdg-pend { background: rgba(100,100,100,.12); color: var(--muted); }
+.cat-tag {
+  font-size: 10px; color: var(--muted); background: var(--surf2);
+  padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
+}
+.urg-tag { font-size: 10px; font-weight: 700; }
+.urg-emergency { color: var(--red); }
+.urg-high      { color: var(--amber); }
+.urg-normal    { color: var(--green); }
+.urg-low       { color: var(--muted); }
+.cost-tag { font-size: 10px; color: var(--blue); font-weight: 600; }
+
+/* ── Right / detail panel ────────────────────────────────────────────────── */
+.detail-panel { display: flex; flex-direction: column; overflow: hidden; }
+.detail-topbar {
+  padding: 12px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+.d-id   { font-family: monospace; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+.d-txt  { font-size: 13px; font-weight: 500; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.detail-body { flex: 1; overflow-y: auto; padding: 18px 22px; }
+.empty-state {
+  height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; color: var(--muted); gap: 10px;
+}
+.empty-icon { font-size: 40px; }
+
+/* Cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.card.full  { grid-column: 1 / -1; }
+.card.b-red   { border-color: rgba(239,68,68,.4); }
+.card.b-green { border-color: rgba(16,185,129,.4); }
+.card.b-amber { border-color: rgba(245,158,11,.4); }
+.card-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--muted); margin-bottom: 10px;
+}
+.kv {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 10px;
+}
+.kv:last-child { border-bottom: none; }
+.kv-k { color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+.kv-v { font-weight: 500; text-align: right; }
+.kv-v.green  { color: var(--green);  }
+.kv-v.red    { color: var(--red);    }
+.kv-v.amber  { color: var(--amber);  }
+.kv-v.blue   { color: var(--blue);   }
+.kv-v.accent { color: var(--accent); }
+.kv-v.muted  { color: var(--muted);  }
+.msg-box {
+  background: var(--surf2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px; font-size: 12px; line-height: 1.7; color: var(--text);
+  margin-top: 8px; white-space: pre-wrap; max-height: 240px; overflow-y: auto;
+}
+
+/* Decision hero */
+.dec-hero { display: flex; flex-direction: column; align-items: center; padding: 12px; }
+.dec-icon { font-size: 30px; }
+.dec-label { font-size: 14px; font-weight: 700; margin-top: 6px; }
+.dec-label.auto { color: var(--green); }
+.dec-label.esc  { color: var(--red);   }
+.dec-reason { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: center; max-width: 200px; }
+.rule-row { display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 0; }
+.rule-row.hit  { color: var(--red);   }
+.rule-row.miss { color: var(--muted); }
+
+/* Progress bars */
+.prog-bar  { height: 4px; background: var(--border); border-radius: 2px; margin-top: 5px; }
+.prog-fill { height: 100%; border-radius: 2px; transition: width .6s; }
+.prog-green  { background: var(--green); }
+.prog-amber  { background: var(--amber); }
+.prog-red    { background: var(--red); }
+.prog-accent { background: var(--accent); }
+.prog-blue   { background: var(--blue); }
+
+/* Gauge (owner cost) */
+.gauge-wrap { padding: 6px 0; }
+.gauge-row  { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.gauge-bar  { height: 8px; background: var(--surf2); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+.gauge-fill { height: 100%; border-radius: 4px; transition: width .6s; }
+
+/* Status hero (tenant) */
+.status-hero {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  border-radius: 8px; margin-bottom: 14px;
+}
+.sh-resolved  { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25); }
+.sh-escalated { background: rgba(239,68,68,.08);  border: 1px solid rgba(239,68,68,.25); }
+.sh-pending   { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); }
+.sh-icon  { font-size: 28px; }
+.sh-title { font-size: 14px; font-weight: 700; }
+.sh-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Pipeline steps */
+.steps { display: flex; align-items: center; padding: 10px 0; }
+.step  { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.step-dot {
+  width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 11px;
+  background: var(--surf2); transition: all .3s;
+}
+.step-dot.done     { border-color: var(--green); background: rgba(16,185,129,.1); }
+.step-dot.escalated { border-color: var(--red); background: rgba(239,68,68,.1); }
+.step-lbl { font-size: 9px; color: var(--muted); text-align: center; max-width: 48px; }
+.step-conn { flex: 1; height: 2px; background: var(--border); margin: 0 3px 14px; transition: background .3s; }
+.step-conn.lit { background: var(--green); }
+.step-conn.esc { background: var(--red); }
+
+/* Escalation banner */
+.esc-banner {
+  margin-bottom: 14px; background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.3); border-radius: 8px;
+  padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px;
+}
+.esc-icon { font-size: 20px; flex-shrink: 0; }
+.esc-title { color: var(--red); font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.esc-body  { font-size: 12px; color: var(--muted); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Haus<span>mind</span></div>
+  <div class="role-tabs" id="roleTabs">
+    <button class="role-tab" data-role="tenant"   onclick="setRole('tenant')">   🏠 Tenant</button>
+    <button class="role-tab" data-role="manager"  onclick="setRole('manager')">  📋 Manager <span class="tab-badge" id="mgr-badge"></span></button>
+    <button class="role-tab" data-role="owner"    onclick="setRole('owner')">    💼 Owner</button>
+    <button class="role-tab" data-role="facility" onclick="setRole('facility')"> 🔧 Facility</button>
+  </div>
+  <div class="hdr-right">
+    <div class="api-dot" id="apiDot"></div>
+    <span id="apiLbl">connecting…</span>
+    <button class="btn-ico" onclick="refresh()">↻</button>
+    <a class="btn-ico" href="/dashboard" target="_blank">Pipeline View ↗</a>
+  </div>
+</header>
+
+<div class="main">
+  <div class="list-panel" id="listPanel"></div>
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-body">
+      <div class="empty-state">
+        <div class="empty-icon">🏢</div>
+        <div>Select a ticket to view details</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const BASE = window.location.origin;
+
+const CAT_ICON = {
+  heating:'🌡️', plumbing:'🚿', electrical:'⚡', elevator:'🛗',
+  access_keys:'🔑', cleaning:'🧹', financial:'💶', legal:'⚖️', other:'❓',
+};
+
+const PIPELINE_NODES = [
+  {id:'intake',    lbl:'Received'},
+  {id:'triage',    lbl:'Triaged'},
+  {id:'context',   lbl:'Context'},
+  {id:'vendor',    lbl:'Vendor'},
+  {id:'risk_gate', lbl:'Gate'},
+  {id:'comms',     lbl:'Comms'},
+  {id:'closed',    lbl:'Done'},
+];
+
+const PRESETS = {
+  '🥶 Cold coworking': { txt: 'The open-plan coworking area on the 3rd floor has been cold all morning. Radiators not heating up, people are working in their coats.', ch: 'chat' },
+  '🚿 Sink blocked':   { txt: 'The shared kitchen sink on the 4th floor is completely blocked — water is backing up onto the counter.', ch: 'sms' },
+  '🔑 Locked out':     { txt: 'My transponder card stopped working and I cannot get into the building. Standing outside for 15 min.', ch: 'chat' },
+  '💡 AV failure':     { txt: 'The AV system and overhead lights in the 3rd floor meeting room stopped working 20 min before a client presentation.', ch: 'phone' },
+  '😡 Gym angry':      { txt: 'The gym AC is not cooling. I reported this THREE times already! Completely unacceptable!!!', ch: 'phone', s: 'angry' },
+  '🚨 Lift stuck':     { txt: 'The middle lift in the atrium stopped between floors 2 and 3 with someone inside — alarm pressed!', ch: 'phone' },
+  '💶 Event space':    { txt: 'The event space on the 4th floor is too cold for our workshop. 40 guests arriving in 2 hours.', ch: 'email' },
+  '⚖️ Legal question': { txt: 'The event space above causes serious noise disturbance every evening. I want to understand my rights and whether this violates my contract.', ch: 'email' },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let S = { role: 'manager', tickets: [], selected: null, filter: 'all', formOpen: false };
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function loadTickets() {
+  try {
+    const r = await fetch(BASE + '/api/requests');
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    S.tickets = d.tickets || [];
+    updateStatus(true);
+    updateManagerBadge();
+    renderList();
+  } catch { updateStatus(false); }
+}
+
+async function getTicketStatus(id) {
+  try {
+    const r = await fetch(BASE + '/api/requests/' + id + '/status');
+    return r.ok ? r.json() : null;
+  } catch { return null; }
+}
+
+async function postRequest(body) {
+  const r = await fetch(BASE + '/api/requests', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+// ── Role switch ───────────────────────────────────────────────────────────────
+function setRole(role) {
+  S.role = role; S.selected = null; S.filter = 'all'; S.formOpen = false;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.toggle('active', t.dataset.role === role));
+  renderList();
+  setDetailEmpty();
+}
+
+function updateManagerBadge() {
+  const esc = S.tickets.filter(t => t.decision === 'escalate_human').length;
+  const badge = document.getElementById('mgr-badge');
+  if (badge) { badge.textContent = esc; badge.classList.toggle('show', esc > 0); }
+}
+
+// ── List rendering ─────────────────────────────────────────────────────────────
+function renderList() {
+  document.getElementById('listPanel').innerHTML =
+    S.role === 'tenant'   ? buildTenantList()   :
+    S.role === 'manager'  ? buildManagerList()  :
+    S.role === 'owner'    ? buildOwnerList()     :
+                            buildFacilityList();
+}
+
+function ticketCards(tickets) {
+  if (!tickets.length) return '<div style="font-size:11px;color:var(--muted);padding:16px;text-align:center">No tickets</div>';
+  return tickets.map(t => {
+    const p   = t.payload || {};
+    const esc = t.decision === 'escalate_human';
+    const auto = t.decision === 'auto_resolve';
+    const lc  = esc ? 'esc' : (t.urgency === 'emergency' || t.urgency === 'high') ? 'urg' : '';
+    return `<div class="ticket-item ${lc} ${t.request_id === S.selected ? 'sel' : ''}" onclick="selectTicket('${t.request_id}')">
+      <div class="ti-top">
+        <span style="font-size:13px">${CAT_ICON[t.category]||'❓'}</span>
+        <span class="ti-id">${t.request_id}</span>
+        <span class="bdg ${esc?'bdg-esc':auto?'bdg-auto':'bdg-pend'}">${esc?'Escalated':auto?'Resolved':'Pending'}</span>
+      </div>
+      <div class="ti-txt">${x(t.raw_text)}</div>
+      <div class="ti-meta">
+        <span class="cat-tag">${t.category||'?'}</span>
+        ${t.urgency?`<span class="urg-tag urg-${t.urgency}">${t.urgency}</span>`:''}
+        ${p.vendor?`<span class="cost-tag">€${p.vendor.estimated_cost_eur}</span>`:''}
+        <span style="font-size:10px;color:var(--muted);margin-left:auto">${ago(t.created_at)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildTenantList() {
+  const presetsHtml = Object.entries(PRESETS).map(([l]) =>
+    `<span class="preset-chip" onclick="applyPreset(${JSON.stringify(l)})">${l}</span>`).join('');
+
+  return `
+  <div class="panel-hdr">
+    <div class="panel-title">Your Issues</div>
+    <button class="btn-outline" onclick="toggleForm()">${S.formOpen ? '✕ Cancel' : '+ Report an Issue'}</button>
+  </div>
+  <div class="form-wrap ${S.formOpen?'open':''}" id="submitForm">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px">Quick scenarios</div>
+    <div class="presets-row">${presetsHtml}</div>
+    <label>Describe your issue</label>
+    <textarea id="f-txt" rows="3" placeholder="e.g. The heating is broken…"></textarea>
+    <label>Channel</label>
+    <select id="f-ch"><option value="chat">Chat</option><option value="phone">Phone</option><option value="sms">SMS</option><option value="email">Email</option><option value="walk_in">Walk-in</option></select>
+    <label>Sentiment (optional override)</label>
+    <select id="f-sent"><option value="">— auto-detect —</option><option value="angry">Angry</option><option value="frustrated">Frustrated</option><option value="neutral">Neutral</option><option value="calm">Calm</option></select>
+    <button class="btn-primary" id="submitBtn" onclick="doSubmit()">▶ Submit Request</button>
+  </div>
+  <div class="ticket-list">${ticketCards(S.tickets)}</div>`;
+}
+
+function buildManagerList() {
+  const all  = S.tickets;
+  const esc  = all.filter(t => t.decision === 'escalate_human');
+  const shown = S.filter === 'escalated' ? esc : all;
+  const total = all.length;
+  const totalCost = all.reduce((s,t) => s + (t.payload?.vendor?.estimated_cost_eur||0), 0);
+
+  return `
+  <div class="panel-hdr">
+    <div class="panel-title">Ticket Queue</div>
+    <div class="stats-grid">
+      <div class="stat blue"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+      <div class="stat red"><div class="stat-n">${esc.length}</div><div class="stat-l">Escalated</div></div>
+      <div class="stat green"><div class="stat-n">${all.filter(t=>t.decision==='auto_resolve').length}</div><div class="stat-l">Auto</div></div>
+      <div class="stat amber"><div class="stat-n">€${Math.round(totalCost)}</div><div class="stat-l">Est. Cost</div></div>
+    </div>
+    <div class="filter-chips">
+      <button class="chip ${S.filter==='all'?'on':''}" onclick="setFilter('all')">All (${total})</button>
+      <button class="chip ${S.filter==='escalated'?'on':''}" onclick="setFilter('escalated')">🚨 Needs Action (${esc.length})</button>
+    </div>
+  </div>
+  <div class="ticket-list">${ticketCards(shown)}</div>`;
+}
+
+function buildOwnerList() {
+  const all  = S.tickets;
+  const esc  = all.filter(t => t.decision === 'escalate_human').length;
+  const auto = all.filter(t => t.decision === 'auto_resolve').length;
+  const cost = all.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
+  const rate = all.length ? Math.round(auto/all.length*100) : 0;
+  const sorted = [...all].sort((a,b)=>(b.payload?.vendor?.estimated_cost_eur||0)-(a.payload?.vendor?.estimated_cost_eur||0));
+
+  return `
+  <div class="panel-hdr">
+    <div class="panel-title">Portfolio Overview</div>
+    <div class="stats-grid">
+      <div class="stat blue"><div class="stat-n">${all.length}</div><div class="stat-l">Tickets</div></div>
+      <div class="stat green"><div class="stat-n">${rate}%</div><div class="stat-l">Auto-res.</div></div>
+      <div class="stat red"><div class="stat-n">${esc}</div><div class="stat-l">Escalated</div></div>
+      <div class="stat amber"><div class="stat-n">€${Math.round(cost)}</div><div class="stat-l">Spend</div></div>
+    </div>
+  </div>
+  <div class="ticket-list">${ticketCards(sorted)}</div>`;
+}
+
+function buildFacilityList() {
+  const urgOrd = { emergency:0, high:1, normal:2, low:3 };
+  const wo = [...S.tickets.filter(t => t.decision==='auto_resolve' && t.payload?.vendor)]
+    .sort((a,b) => (urgOrd[a.urgency]||9)-(urgOrd[b.urgency]||9));
+  const cost = wo.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
+
+  return `
+  <div class="panel-hdr">
+    <div class="panel-title">Open Work Orders</div>
+    <div class="stats-grid two">
+      <div class="stat blue"><div class="stat-n">${wo.length}</div><div class="stat-l">Open</div></div>
+      <div class="stat amber"><div class="stat-n">€${Math.round(cost)}</div><div class="stat-l">Est. Total</div></div>
+    </div>
+  </div>
+  <div class="ticket-list">${wo.length ? ticketCards(wo) : '<div style="font-size:11px;color:var(--muted);padding:16px;text-align:center">No open work orders</div>'}</div>`;
+}
+
+// ── Ticket selection ───────────────────────────────────────────────────────────
+async function selectTicket(id) {
+  S.selected = id;
+  renderList();
+  const t = S.tickets.find(t => t.request_id === id);
+  if (!t) return;
+  const statusData = await getTicketStatus(id);
+  renderDetail(t, statusData);
+}
+
+// ── Detail rendering ──────────────────────────────────────────────────────────
+function setDetailEmpty() {
+  document.getElementById('detailPanel').innerHTML = `
+    <div class="detail-body">
+      <div class="empty-state">
+        <div class="empty-icon">🏢</div>
+        <div>Select a ticket to view details</div>
+      </div>
+    </div>`;
+}
+
+function renderDetail(t, sd) {
+  switch (S.role) {
+    case 'tenant':   renderTenantDetail(t, sd);   break;
+    case 'manager':  renderManagerDetail(t, sd);  break;
+    case 'owner':    renderOwnerDetail(t, sd);    break;
+    case 'facility': renderFacilityDetail(t, sd); break;
+  }
+}
+
+// ── Tenant detail ─────────────────────────────────────────────────────────────
+function renderTenantDetail(t, sd) {
+  const p = t.payload || {}, v = p.vendor;
+  const esc  = t.decision === 'escalate_human';
+  const auto = t.decision === 'auto_resolve';
+  const heroClass = esc ? 'sh-escalated' : auto ? 'sh-resolved' : 'sh-pending';
+  const heroIcon  = esc ? '🚨' : auto ? '✅' : '⏳';
+  const heroTitle = esc ? 'Escalated to Human Support' : auto ? 'Issue Being Resolved' : 'Processing…';
+  const heroSub   = esc ? 'A team member will contact you shortly.'
+                   : auto ? (v ? `Vendor scheduled: ${v.proposed_window}` : 'Being handled.')
+                   : 'Your request is being processed.';
+
+  // Build pipeline steps from events
+  const doneSet = new Set((sd?.events||[]).filter(e=>e.status==='done').map(e=>e.node));
+  const steps = PIPELINE_NODES.map((n, i) => {
+    const done = doneSet.has(n.id);
+    const dc = done ? (esc && n.id==='risk_gate' ? 'escalated' : 'done') : '';
+    const icon = done ? (esc && n.id==='risk_gate' ? '✕' : '✓') : '○';
+    const next = PIPELINE_NODES[i+1];
+    const connDone = next && doneSet.has(next.id);
+    const connCls  = connDone ? (esc && i>=3 ? 'esc' : 'lit') : '';
+    return `<div class="step"><div class="step-dot ${dc}">${icon}</div><div class="step-lbl">${n.lbl}</div></div>`
+      + (i < PIPELINE_NODES.length-1 ? `<div class="step-conn ${connCls}"></div>` : '');
+  }).join('');
+
+  setDetailShell(`#${t.request_id}`, t.raw_text, t.channel);
+  document.getElementById('detail-body-inner').innerHTML = `
+    <div class="status-hero ${heroClass}">
+      <div class="sh-icon">${heroIcon}</div>
+      <div><div class="sh-title">${heroTitle}</div><div class="sh-sub">${heroSub}</div></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">Pipeline Progress</div>
+      <div class="steps">${steps}</div>
+    </div>
+    <div class="cards">
+      ${p.tenant_message ? card('💬 Message For You', `<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Prepared response:</div><div class="msg-box">${x(p.tenant_message)}</div>`) : ''}
+      ${v && auto ? card('🔧 Vendor Assigned', kv('Vendor', v.vendor_name, 'accent') + kv('Window', v.proposed_window) + kv('Est. Cost', '€'+v.estimated_cost_eur, 'blue')) : ''}
+      ${esc ? card('🚨 Human Review', `<div style="color:var(--red);font-size:12px;line-height:1.6">${x(p.escalation_reason||'Your issue requires personal attention from our team.')}</div><div style="font-size:11px;color:var(--muted);margin-top:8px">A property manager has been notified.</div>`, 'b-red') : ''}
+      ${card('📋 Issue Details', kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—'), 'accent') + kv('Priority', t.urgency, t.urgency==='emergency'||t.urgency==='high'?'red':'green') + kv('Channel', t.channel) + kv('Submitted', ago(t.created_at)))}
+    </div>`;
+}
+
+// ── Manager detail ────────────────────────────────────────────────────────────
+function renderManagerDetail(t, sd) {
+  const p = t.payload || {}, v = p.vendor, diag = p.diagnosis || {};
+  const esc  = t.decision === 'escalate_human';
+  const conf = diag.confidence != null ? Math.round(diag.confidence*100) : null;
+
+  setDetailShell(`#${t.request_id}`, t.raw_text,
+    `<span class="bdg ${esc?'bdg-esc':'bdg-auto'}">${esc?'🚨 Escalated':'✅ Auto-resolved'}</span>`);
+  document.getElementById('detail-body-inner').innerHTML = `
+    ${esc ? `<div class="esc-banner"><div class="esc-icon">🚨</div><div><div class="esc-title">Needs Human Action</div><div class="esc-body">${x(p.escalation_reason||'Manual review required.')}</div></div></div>` : ''}
+    <div class="cards">
+      ${card('🔍 AI Triage', `
+        ${kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—'), 'accent')}
+        ${kv('Urgency', t.urgency||'—', t.urgency==='emergency'||t.urgency==='high'?'red':t.urgency==='normal'?'green':'muted')}
+        ${kv('Sentiment', t.sentiment||'—', t.sentiment==='angry'?'red':t.sentiment==='frustrated'?'amber':'green')}
+        ${conf!=null ? kv('Confidence', conf+'%') + `<div class="prog-bar"><div class="prog-fill prog-accent" style="width:${conf}%"></div></div>` : ''}
+        ${diag.summary ? `<div class="msg-box" style="margin-top:8px;font-style:italic">"${x(diag.summary)}"</div>` : ''}
+      `)}
+      ${card('🛡️ Risk Gate', `
+        <div class="dec-hero">
+          <div class="dec-icon">${esc?'🚨':'✅'}</div>
+          <div class="dec-label ${esc?'esc':'auto'}">${esc?'Escalate to Human':'Auto Resolve'}</div>
+          ${esc?`<div class="dec-reason">${x(p.escalation_reason||'')}</div>`:''}
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px">
+          ${rule('Legal topic',     t.category==='legal')}
+          ${rule('Financial topic', t.category==='financial')}
+          ${rule('Angry sentiment', t.sentiment==='angry')}
+          ${v ? rule('Cost €'+v.estimated_cost_eur+' > approval threshold', esc && (p.escalation_reason||'').includes('threshold')) : ''}
+        </div>
+      `)}
+      ${v ? card('🔧 Vendor Plan', kv('Vendor', v.vendor_name, 'accent') + kv('Window', v.proposed_window) + kv('Est. Cost', '€'+v.estimated_cost_eur, 'blue') + kv('Vendor ID', v.vendor_id)) : ''}
+      ${p.tenant_message ? card('💬 Tenant Message', `<div class="msg-box">${x(p.tenant_message)}</div>`) : ''}
+      ${p.vendor_message ? card('📋 Vendor Work Order', `<div class="msg-box">${x(p.vendor_message)}</div>`, 'full') : ''}
+      ${card('📝 Request Info', kv('Request ID', t.request_id) + kv('Channel', t.channel) + kv('Property', p.property?.name||'—') + kv('Manager', p.property?.manager||'—') + kv('Submitted', ago(t.created_at)))}
+    </div>`;
+}
+
+// ── Owner detail ──────────────────────────────────────────────────────────────
+function renderOwnerDetail(t, sd) {
+  const p = t.payload || {}, v = p.vendor;
+  const esc  = t.decision === 'escalate_human';
+  const cost = v?.estimated_cost_eur || 0;
+  const prop = p.property || {};
+  const threshold = 800;
+  const pct = Math.min(Math.round(cost/threshold*100), 100);
+  const gc = pct>85?'red':pct>60?'amber':'green';
+
+  // Property portfolio stats
+  const propName = prop.name || '';
+  const propTix = S.tickets.filter(t2 => (t2.payload?.property?.name||'') === propName);
+  const propCost = propTix.reduce((s,t2)=>s+(t2.payload?.vendor?.estimated_cost_eur||0),0);
+  const propEsc  = propTix.filter(t2=>t2.decision==='escalate_human').length;
+  const propRate = propTix.length ? Math.round((propTix.length-propEsc)/propTix.length*100) : 0;
+
+  setDetailShell(`#${t.request_id}`, t.raw_text,
+    `<span class="bdg ${esc?'bdg-esc':'bdg-auto'}">${esc?'Escalated':'Auto-resolved'}</span>`);
+  document.getElementById('detail-body-inner').innerHTML = `<div class="cards">
+    ${card('💶 Cost Analysis', `
+      <div class="gauge-wrap">
+        <div class="gauge-row"><span style="color:var(--muted)">Estimated repair cost</span><span style="font-weight:700;color:var(--${gc})">€${cost}</span></div>
+        <div class="gauge-bar"><div class="gauge-fill prog-${gc}" style="width:${pct}%"></div></div>
+        <div class="gauge-row" style="font-size:10px;color:var(--muted)"><span>${pct}% of €${threshold} threshold</span><span>${pct>=100?'⚠ Requires approval':'✓ Within limit'}</span></div>
+      </div>
+      ${kv('Decision', esc?'🚨 Escalated':'✅ Auto-resolved', esc?'red':'green')}
+      ${esc && p.escalation_reason ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">${x(p.escalation_reason)}</div>` : ''}
+    `, esc?'b-red':'b-green')}
+    ${card('🏢 Property', kv('Property', prop.name||'—') + kv('Manager', prop.manager||'—') + kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—')) + kv('Urgency', t.urgency||'—', t.urgency==='emergency'||t.urgency==='high'?'red':'green'))}
+    ${propName ? card('📊 Portfolio — '+x(propName), kv('Total tickets', propTix.length) + kv('Escalated', propEsc, propEsc>0?'red':'green') + kv('Est. total spend', '€'+Math.round(propCost), 'blue') + kv('Auto-resolve rate', propRate+'%', 'green')) : ''}
+    ${v ? card('🔧 Vendor', kv('Vendor', v.vendor_name) + kv('Window', v.proposed_window) + kv('Cost', '€'+v.estimated_cost_eur, gc)) : ''}
+  </div>`;
+}
+
+// ── Facility detail ───────────────────────────────────────────────────────────
+function renderFacilityDetail(t, sd) {
+  const p = t.payload || {}, v = p.vendor, prop = p.property || {};
+
+  setDetailShell(`#${t.request_id}`, t.raw_text,
+    `<span class="urg-tag urg-${t.urgency}">${t.urgency}</span>`);
+  document.getElementById('detail-body-inner').innerHTML = `<div class="cards">
+    ${v ? card('🔧 Work Order', kv('Vendor', v.vendor_name, 'accent') + kv('Window', v.proposed_window) + kv('Est. Cost', '€'+v.estimated_cost_eur, 'blue') + kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—')) + kv('Priority', t.urgency, t.urgency==='emergency'||t.urgency==='high'?'red':'green')) : card('ℹ️ Work Order', '<div style="color:var(--muted);font-size:12px">No vendor plan — ticket was escalated to human.</div>')}
+    ${prop.access_notes ? card('📍 Property Access', `<div style="font-size:12px;line-height:1.7">${x(prop.access_notes)}</div>${prop.key_holder?`<div style="margin-top:8px">${kv('Key Holder', prop.key_holder)}</div>`:''}`) : ''}
+    ${card('📝 Issue Report', `<div class="msg-box">${x(t.raw_text)}</div>${kv('Channel', t.channel)+kv('Received', ago(t.created_at))}`)}
+    ${p.vendor_message ? card('📋 Full Work Order', `<div class="msg-box">${x(p.vendor_message)}</div>`, 'full') : ''}
+  </div>`;
+}
+
+// ── Shell helper ──────────────────────────────────────────────────────────────
+function setDetailShell(id, txt, right) {
+  document.getElementById('detailPanel').innerHTML = `
+    <div class="detail-topbar">
+      <span class="d-id">${id}</span>
+      <span class="d-txt">${x(txt)}</span>
+      ${right||''}
+    </div>
+    <div class="detail-body" id="detail-body-inner"></div>`;
+}
+
+// ── Submit flow ───────────────────────────────────────────────────────────────
+function toggleForm() {
+  S.formOpen = !S.formOpen;
+  renderList();
+}
+
+function applyPreset(label) {
+  const p = PRESETS[label]; if (!p) return;
+  const ta = document.getElementById('f-txt');
+  const ch = document.getElementById('f-ch');
+  const se = document.getElementById('f-sent');
+  if (ta) ta.value = p.txt;
+  if (ch) ch.value = p.ch || 'chat';
+  if (se) se.value = p.s  || '';
+}
+
+async function doSubmit() {
+  const txt = (document.getElementById('f-txt')?.value||'').trim();
+  if (!txt) return;
+  const rid = 'req-' + Date.now();
+  const body = {
+    request_id: rid, channel: document.getElementById('f-ch')?.value||'chat',
+    raw_text: txt, property_hint: 'The Delta Campus Berlin',
+  };
+  const s = document.getElementById('f-sent')?.value;
+  if (s) body.detected_sentiment = s;
+
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
+  try {
+    await postRequest(body);
+    S.formOpen = false;
+    await loadTickets();
+    S.selected = rid;
+    renderList();
+    const t = S.tickets.find(t2 => t2.request_id === rid);
+    if (t) { const sd = await getTicketStatus(rid); renderDetail(t, sd); }
+  } catch (e) { alert('Submit failed: ' + e.message); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '▶ Submit Request'; } }
+}
+
+// ── Shared helpers ────────────────────────────────────────────────────────────
+function card(title, body, extra='') {
+  return `<div class="card ${extra}"><div class="card-title">${title}</div>${body}</div>`;
+}
+function kv(k, v, cls='') {
+  const val = (v==null||v===''||v==='—') ? '—' : x(String(v));
+  return `<div class="kv"><span class="kv-k">${k}</span><span class="kv-v ${cls}">${val}</span></div>`;
+}
+function rule(label, hit) {
+  return `<div class="rule-row ${hit?'hit':'miss'}"><span>${hit?'✕':'○'}</span><span>${label}</span></div>`;
+}
+function x(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function ago(s) {
+  if (!s) return '—';
+  try {
+    const d = new Date(s), now = new Date(), diff = now - d;
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return Math.floor(diff/60000)+'m ago';
+    if (diff < 86400000) return Math.floor(diff/3600000)+'h ago';
+    return d.toLocaleDateString();
+  } catch { return s; }
+}
+function setFilter(f) { S.filter = f; renderList(); }
+function updateStatus(ok) {
+  const dot = document.getElementById('apiDot');
+  const lbl = document.getElementById('apiLbl');
+  if (dot) dot.style.background = ok ? 'var(--green)' : 'var(--red)';
+  if (lbl) lbl.textContent = ok ? 'API online' : 'API offline';
+}
+
+async function refresh() {
+  await loadTickets();
+  if (S.selected) {
+    const t = S.tickets.find(t2 => t2.request_id === S.selected);
+    if (t) { const sd = await getTicketStatus(S.selected); renderDetail(t, sd); }
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+setRole('manager');
+loadTickets();
+setInterval(loadTickets, 15000);
+</script>
+</body>
+</html>

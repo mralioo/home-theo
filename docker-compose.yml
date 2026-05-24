@@ -53,9 +53,15 @@ services:
       LITELLM_MODEL: "${LITELLM_MODEL:-anthropic/claude-sonnet-4-5-20250929}"
       DB_PATH: "/data/ops.db"
       CONTEXT_SERVICE_URL: "http://context-service:8002"
+      WEBHOOK_SECRET: "${WEBHOOK_SECRET:-dev-only-not-secret}"
+      ADMIN_SECRET: "${ADMIN_SECRET:-dev-only-not-secret}"
+      ELEVENLABS_API_KEY: "${ELEVENLABS_API_KEY:-}"
+      ELEVENLABS_AGENT_ID_OUTBOUND: "${ELEVENLABS_AGENT_ID_OUTBOUND:-}"
+      FAKE_ORCHESTRATOR: "${FAKE_ORCHESTRATOR:-0}"
     volumes:
       - ./data:/data
       - ./app:/srv/app
+      - ./static:/srv/static
     depends_on:
       context-service:
         condition: service_healthy

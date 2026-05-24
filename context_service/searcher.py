@@ -2,11 +2,10 @@
 Search functions: hybrid (knn_vector + BM25) when embeddings available,
 BM25-only fallback otherwise.
 """
+
 from __future__ import annotations
 
 import logging
-
-from opensearchpy import OpenSearch
 
 import embedder
 from indexer import get_client
@@ -40,6 +39,7 @@ def _bm25_vendor_query(category: str, extra: str = "") -> dict:
 
 
 # ── Public search API ─────────────────────────────────────────────────────────
+
 
 def search_buildings(query: str, top_k: int = 3) -> list[dict]:
     client = get_client()

@@ -26,10 +26,12 @@ from app.core.schemas import InboundRequest, OrchestratorResponse
 from app.routes import actions as actions_route
 from app.routes import elevenlabs as elevenlabs_route
 from app.routes import events as events_route
+from app.routes import queries as queries_route
 
 _STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 _DASHBOARD = Path(__file__).parent / "static" / "dashboard.html"
+_APP_HTML = Path(__file__).parent / "static" / "app.html"
 
 
 @asynccontextmanager
@@ -45,6 +47,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(queries_route.router)
 app.include_router(events_route.router)
 app.include_router(elevenlabs_route.router)
 app.include_router(actions_route.router)
@@ -59,6 +62,11 @@ def health() -> dict:
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard() -> HTMLResponse:
     return HTMLResponse(content=_DASHBOARD.read_text())
+
+
+@app.get("/app", response_class=HTMLResponse)
+def spa() -> HTMLResponse:
+    return HTMLResponse(content=_APP_HTML.read_text())
 
 
 @app.post("/api/requests", response_model=OrchestratorResponse)
