@@ -3,467 +3,534 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hausmind — Operations Platform</title>
+<title>Home Theo — Property Operations</title>
 <style>
 :root {
-  --bg:      #0d0f16;
-  --surface: #161921;
-  --surf2:   #1e2130;
-  --border:  #2a2e45;
-  --text:    #e2e8f0;
-  --muted:   #7a849e;
-  --accent:  #6366f1;
-  --green:   #10b981;
-  --amber:   #f59e0b;
-  --red:     #ef4444;
-  --blue:    #3b82f6;
-  --gray:    #4b5563;
+  --bg:#0d0f16; --surface:#161921; --surf2:#1e2130; --surf3:#252840;
+  --border:#2a2e45; --text:#e2e8f0; --muted:#7a849e;
+  --accent:#6366f1; --green:#10b981; --amber:#f59e0b;
+  --red:#ef4444; --blue:#3b82f6; --purple:#8b5cf6; --teal:#14b8a6;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg); color: var(--text);
-  font-family: 'Inter', system-ui, sans-serif;
-  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
-/* ── Header ─────────────────────────────────────────────────────────────── */
-header {
-  display: flex; align-items: stretch;
-  border-bottom: 1px solid var(--border); flex-shrink: 0; height: 48px;
-}
-.logo {
-  padding: 0 20px; font-size: 17px; font-weight: 700; letter-spacing: -.5px;
-  border-right: 1px solid var(--border); display: flex; align-items: center; flex-shrink: 0;
-}
-.logo span { color: var(--accent); }
-.role-tabs { display: flex; flex: 1; }
-.role-tab {
-  padding: 0 20px; font-size: 13px; color: var(--muted); cursor: pointer;
-  border: none; background: transparent; border-bottom: 2px solid transparent;
-  display: flex; align-items: center; gap: 7px; transition: color .15s, border-color .15s;
-  white-space: nowrap;
-}
-.role-tab:hover { color: var(--text); }
-.role-tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
-.role-tab .tab-badge {
-  background: var(--red); color: #fff; border-radius: 99px;
-  font-size: 10px; font-weight: 700; padding: 0 5px; min-width: 16px; text-align: center;
-  display: none;
-}
-.role-tab .tab-badge.show { display: inline-block; }
-.hdr-right {
-  padding: 0 16px; display: flex; align-items: center; gap: 8px;
-  font-size: 11px; color: var(--muted); border-left: 1px solid var(--border); flex-shrink: 0;
-}
-.api-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
-.btn-ico {
-  border: 1px solid var(--border); background: var(--surf2); color: var(--muted);
-  border-radius: 5px; padding: 3px 8px; font-size: 11px; cursor: pointer;
-}
-.btn-ico:hover { color: var(--text); }
-a.btn-ico { text-decoration: none; display: inline-flex; align-items: center; }
+/* ── Header ── */
+header{height:46px;display:flex;align-items:stretch;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{padding:0 18px;font-size:16px;font-weight:700;letter-spacing:-.5px;display:flex;align-items:center;gap:2px;border-right:1px solid var(--border);flex-shrink:0;}
+.logo span{color:var(--accent);}
+.role-tabs{display:flex;flex:1;overflow-x:auto;}
+.role-tab{padding:0 16px;font-size:12px;color:var(--muted);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;transition:color .15s,border-color .15s;white-space:nowrap;flex-shrink:0;}
+.role-tab:hover{color:var(--text);}
+.role-tab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:600;}
+.tab-badge{background:var(--red);color:#fff;border-radius:99px;font-size:10px;font-weight:700;padding:0 5px;min-width:16px;text-align:center;display:none;}
+.tab-badge.show{display:inline-block;}
+.hdr-right{padding:0 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);border-left:1px solid var(--border);flex-shrink:0;}
+.api-dot{width:7px;height:7px;border-radius:50%;background:var(--gray,#4b5563);}
+.hdr-btn{border:1px solid var(--border);background:var(--surf2);color:var(--muted);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;}
+.hdr-btn:hover{color:var(--text);border-color:var(--accent);}
 
-/* ── Layout ─────────────────────────────────────────────────────────────── */
-.main { display: grid; grid-template-columns: 320px 1fr; flex: 1; overflow: hidden; }
+/* ── Shared layouts ── */
+.view-layout{flex:1;overflow:hidden;display:grid;}
+.view-layout.two-col{grid-template-columns:320px 1fr;}
+.view-layout.three-col{grid-template-columns:258px 258px 1fr;}
 
-/* ── Left panel ──────────────────────────────────────────────────────────── */
-.list-panel {
-  border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
-}
-.panel-hdr { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.panel-title {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .8px; color: var(--muted); margin-bottom: 8px;
-}
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px; }
-.stats-grid.two { grid-template-columns: 1fr 1fr; }
-.stat {
-  background: var(--surf2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 6px 4px; text-align: center;
-}
-.stat-n { font-size: 17px; font-weight: 700; line-height: 1; }
-.stat-l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
-.stat.red   .stat-n { color: var(--red);   }
-.stat.green .stat-n { color: var(--green);  }
-.stat.amber .stat-n { color: var(--amber);  }
-.stat.blue  .stat-n { color: var(--blue);   }
-.filter-chips { display: flex; gap: 4px; flex-wrap: wrap; }
-.chip {
-  padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border);
-  font-size: 11px; color: var(--muted); cursor: pointer; background: transparent; transition: all .15s;
-}
-.chip:hover, .chip.on { border-color: var(--accent); color: var(--text); background: rgba(99,102,241,.1); }
+/* ── Roles left panel ── */
+.list-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.panel-hdr{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px;}
+.stats-grid.two{grid-template-columns:1fr 1fr;}
+.stat{background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:6px 4px;text-align:center;}
+.stat-n{font-size:17px;font-weight:700;line-height:1;}
+.stat-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.stat.red .stat-n{color:var(--red);}
+.stat.green .stat-n{color:var(--green);}
+.stat.amber .stat-n{color:var(--amber);}
+.stat.blue  .stat-n{color:var(--blue);}
+.filter-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.chip{padding:3px 9px;border-radius:99px;border:1px solid var(--border);font-size:11px;color:var(--muted);cursor:pointer;background:transparent;transition:all .15s;}
+.chip:hover,.chip.on{border-color:var(--accent);color:var(--text);background:rgba(99,102,241,.1);}
 
-/* Submit form */
-.form-wrap {
-  padding: 10px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: none;
-}
-.form-wrap.open { display: block; }
-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 8px 0 3px; }
-label:first-of-type { margin-top: 0; }
-input, select, textarea {
-  width: 100%; background: var(--surf2); border: 1px solid var(--border); color: var(--text);
-  border-radius: 5px; padding: 6px 8px; font-size: 12px; outline: none; font-family: inherit;
-}
-input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-textarea { resize: vertical; min-height: 60px; }
-.presets-row { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
-.preset-chip {
-  padding: 3px 7px; font-size: 10px; border: 1px solid var(--border);
-  border-radius: 4px; cursor: pointer; color: var(--muted); background: var(--surface);
-}
-.preset-chip:hover { border-color: var(--accent); color: var(--text); }
-.btn-primary {
-  width: 100%; padding: 8px; background: var(--accent); color: #fff; border: none;
-  border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;
-}
-.btn-primary:hover { opacity: .85; }
-.btn-primary:disabled { opacity: .35; cursor: not-allowed; }
-.btn-outline {
-  width: 100%; padding: 7px; background: transparent; color: var(--muted);
-  border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; margin-bottom: 8px;
-}
-.btn-outline:hover { border-color: var(--accent); color: var(--text); }
+label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:8px 0 3px;}
+label:first-of-type{margin-top:0;}
+input,select,textarea{width:100%;background:var(--surf2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:6px 8px;font-size:12px;outline:none;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:60px;}
 
-/* Ticket list */
-.ticket-list { flex: 1; overflow-y: auto; padding: 6px; }
-.ticket-item {
-  padding: 9px 11px; border-radius: 7px; border: 1px solid var(--border);
-  background: var(--surface); margin-bottom: 4px; cursor: pointer; transition: border-color .15s;
-}
-.ticket-item:hover { border-color: var(--accent); }
-.ticket-item.sel { border-color: var(--accent); background: var(--surf2); }
-.ticket-item.esc { border-left: 3px solid var(--red); }
-.ticket-item.urg { border-left: 3px solid var(--amber); }
-.ti-top { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
-.ti-id { font-size: 10px; color: var(--muted); font-family: monospace; }
-.ti-txt { font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.ti-meta { display: flex; align-items: center; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+.form-wrap{padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:none;}
+.form-wrap.open{display:block;}
+.presets-row{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;}
+.preset-chip{padding:3px 7px;font-size:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted);background:var(--surface);}
+.preset-chip:hover{border-color:var(--accent);color:var(--text);}
+.btn-primary{width:100%;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.btn-outline{width:100%;padding:7px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;margin-bottom:8px;}
+.btn-outline:hover{border-color:var(--accent);color:var(--text);}
 
-/* Badges */
-.bdg {
-  display: inline-flex; align-items: center; padding: 1px 7px;
-  border-radius: 99px; font-size: 10px; font-weight: 600;
-}
-.bdg-auto { background: rgba(16,185,129,.12); color: var(--green); }
-.bdg-esc  { background: rgba(239,68,68,.12);  color: var(--red);   }
-.bdg-pend { background: rgba(100,100,100,.12); color: var(--muted); }
-.cat-tag {
-  font-size: 10px; color: var(--muted); background: var(--surf2);
-  padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
-}
-.urg-tag { font-size: 10px; font-weight: 700; }
-.urg-emergency { color: var(--red); }
-.urg-high      { color: var(--amber); }
-.urg-normal    { color: var(--green); }
-.urg-low       { color: var(--muted); }
-.cost-tag { font-size: 10px; color: var(--blue); font-weight: 600; }
+.ticket-list{flex:1;overflow-y:auto;padding:6px;}
+.ticket-item{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:var(--surface);margin-bottom:4px;cursor:pointer;transition:border-color .15s;}
+.ticket-item:hover{border-color:var(--accent);}
+.ticket-item.sel{border-color:var(--accent);background:var(--surf2);}
+.ticket-item.esc{border-left:3px solid var(--red);}
+.ticket-item.urg{border-left:3px solid var(--amber);}
+.ti-top{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+.ti-id{font-size:10px;color:var(--muted);font-family:monospace;}
+.ti-txt{font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ti-meta{display:flex;align-items:center;gap:4px;margin-top:3px;flex-wrap:wrap;}
 
-/* ── Right / detail panel ────────────────────────────────────────────────── */
-.detail-panel { display: flex; flex-direction: column; overflow: hidden; }
-.detail-topbar {
-  padding: 12px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  display: flex; align-items: center; gap: 10px;
-}
-.d-id   { font-family: monospace; font-size: 12px; color: var(--muted); flex-shrink: 0; }
-.d-txt  { font-size: 13px; font-weight: 500; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.detail-body { flex: 1; overflow-y: auto; padding: 18px 22px; }
-.empty-state {
-  height: 100%; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; color: var(--muted); gap: 10px;
-}
-.empty-icon { font-size: 40px; }
+/* ── Badges / tags ── */
+.bdg{display:inline-flex;align-items:center;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;}
+.bdg-auto{background:rgba(16,185,129,.12);color:var(--green);}
+.bdg-esc{background:rgba(239,68,68,.12);color:var(--red);}
+.bdg-pend{background:rgba(100,100,100,.12);color:var(--muted);}
+.cat-tag{font-size:10px;color:var(--muted);background:var(--surf2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);}
+.urg-tag{font-size:10px;font-weight:700;}
+.urg-emergency{color:var(--red);}
+.urg-high{color:var(--amber);}
+.urg-normal{color:var(--green);}
+.urg-low{color:var(--muted);}
+.cost-tag{font-size:10px;color:var(--blue);font-weight:600;}
 
-/* Cards */
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 12px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-.card.full  { grid-column: 1 / -1; }
-.card.b-red   { border-color: rgba(239,68,68,.4); }
-.card.b-green { border-color: rgba(16,185,129,.4); }
-.card.b-amber { border-color: rgba(245,158,11,.4); }
-.card-title {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .8px; color: var(--muted); margin-bottom: 10px;
-}
-.kv {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; gap: 10px;
-}
-.kv:last-child { border-bottom: none; }
-.kv-k { color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-.kv-v { font-weight: 500; text-align: right; }
-.kv-v.green  { color: var(--green);  }
-.kv-v.red    { color: var(--red);    }
-.kv-v.amber  { color: var(--amber);  }
-.kv-v.blue   { color: var(--blue);   }
-.kv-v.accent { color: var(--accent); }
-.kv-v.muted  { color: var(--muted);  }
-.msg-box {
-  background: var(--surf2); border: 1px solid var(--border); border-radius: 6px;
-  padding: 10px 12px; font-size: 12px; line-height: 1.7; color: var(--text);
-  margin-top: 8px; white-space: pre-wrap; max-height: 240px; overflow-y: auto;
-}
+/* ── Roles right panel ── */
+.detail-panel{display:flex;flex-direction:column;overflow:hidden;}
+.detail-topbar{padding:12px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.d-id{font-family:monospace;font-size:12px;color:var(--muted);flex-shrink:0;}
+.d-txt{font-size:13px;font-weight:500;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.detail-body{flex:1;overflow-y:auto;padding:18px 22px;}
+.empty-state{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:10px;}
+.empty-icon{font-size:40px;}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.card.full{grid-column:1/-1;}
+.card.b-red{border-color:rgba(239,68,68,.4);}
+.card.b-green{border-color:rgba(16,185,129,.4);}
+.card.b-amber{border-color:rgba(245,158,11,.4);}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;gap:10px;}
+.kv:last-child{border-bottom:none;}
+.kv-k{color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.kv-v{font-weight:500;text-align:right;}
+.kv-v.green{color:var(--green);}.kv-v.red{color:var(--red);}.kv-v.amber{color:var(--amber);}
+.kv-v.blue{color:var(--blue);}.kv-v.accent{color:var(--accent);}.kv-v.muted{color:var(--muted);}
+.msg-box{background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.7;color:var(--text);margin-top:8px;white-space:pre-wrap;max-height:240px;overflow-y:auto;}
+.dec-hero{display:flex;flex-direction:column;align-items:center;padding:12px;}
+.dec-icon{font-size:30px;}
+.dec-label{font-size:14px;font-weight:700;margin-top:6px;}
+.dec-label.auto{color:var(--green);}.dec-label.esc{color:var(--red);}
+.dec-reason{font-size:11px;color:var(--muted);margin-top:4px;text-align:center;max-width:200px;}
+.rule-row{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 0;}
+.rule-row.hit{color:var(--red);}.rule-row.miss{color:var(--muted);}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;border-radius:2px;transition:width .6s;}
+.prog-green{background:var(--green);}.prog-amber{background:var(--amber);}.prog-red{background:var(--red);}.prog-accent{background:var(--accent);}.prog-blue{background:var(--blue);}
+.gauge-wrap{padding:6px 0;}
+.gauge-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+.gauge-bar{height:8px;background:var(--surf2);border-radius:4px;overflow:hidden;margin-bottom:4px;}
+.gauge-fill{height:100%;border-radius:4px;transition:width .6s;}
+.status-hero{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:8px;margin-bottom:14px;}
+.sh-resolved{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);}
+.sh-escalated{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);}
+.sh-pending{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);}
+.sh-icon{font-size:28px;}.sh-title{font-size:14px;font-weight:700;}
+.sh-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.steps{display:flex;align-items:center;padding:10px 0;}
+.step{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.step-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;background:var(--surf2);transition:all .3s;}
+.step-dot.done{border-color:var(--green);background:rgba(16,185,129,.1);}
+.step-dot.escalated{border-color:var(--red);background:rgba(239,68,68,.1);}
+.step-lbl{font-size:9px;color:var(--muted);text-align:center;max-width:48px;}
+.step-conn{flex:1;height:2px;background:var(--border);margin:0 3px 14px;transition:background .3s;}
+.step-conn.lit{background:var(--green);}.step-conn.esc{background:var(--red);}
+.esc-banner{margin-bottom:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;}
+.esc-icon{font-size:20px;flex-shrink:0;}
+.esc-title{color:var(--red);font-weight:700;font-size:13px;margin-bottom:2px;}
+.esc-body{font-size:12px;color:var(--muted);}
 
-/* Decision hero */
-.dec-hero { display: flex; flex-direction: column; align-items: center; padding: 12px; }
-.dec-icon { font-size: 30px; }
-.dec-label { font-size: 14px; font-weight: 700; margin-top: 6px; }
-.dec-label.auto { color: var(--green); }
-.dec-label.esc  { color: var(--red);   }
-.dec-reason { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: center; max-width: 200px; }
-.rule-row { display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 0; }
-.rule-row.hit  { color: var(--red);   }
-.rule-row.miss { color: var(--muted); }
+/* ── Pipeline sidebar ── */
+.pipe-sidebar{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sec{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin-bottom:9px;}
+.btn-run{margin-top:9px;width:100%;padding:8px;border-radius:6px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-run:hover{opacity:.85;}.btn-run:disabled{opacity:.35;cursor:not-allowed;}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.preset{padding:6px 4px;border-radius:5px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:10px;color:var(--muted);text-align:center;transition:all .12s;line-height:1.35;}
+.preset:hover{border-color:var(--accent);color:var(--text);}
+.hist-list{flex:1;overflow-y:auto;padding:6px;}
+.hist-item{padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);margin-bottom:4px;cursor:pointer;transition:border-color .12s;}
+.hist-item:hover,.hist-item.active{border-color:var(--accent);}
+.hi-id{font-size:10px;font-family:monospace;color:var(--muted);}
+.hi-txt{font-size:11px;margin:2px 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.hi-meta{display:flex;gap:4px;align-items:center;margin-top:3px;}
 
-/* Progress bars */
-.prog-bar  { height: 4px; background: var(--border); border-radius: 2px; margin-top: 5px; }
-.prog-fill { height: 100%; border-radius: 2px; transition: width .6s; }
-.prog-green  { background: var(--green); }
-.prog-amber  { background: var(--amber); }
-.prog-red    { background: var(--red); }
-.prog-accent { background: var(--accent); }
-.prog-blue   { background: var(--blue); }
+/* ── Pipeline trace ── */
+.trace{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.trace-hdr{padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.trace-hdr-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);}
+.trace-summary{font-size:10px;color:var(--muted);font-family:monospace;}
+.step-list{flex:1;overflow-y:auto;padding:8px 10px;}
+.step-item{position:relative;padding:10px 12px 10px 38px;border-radius:7px;border:1px solid transparent;cursor:pointer;transition:background .12s,border-color .12s;margin-bottom:3px;}
+.step-item:hover{background:var(--surf2);}
+.step-item.selected{background:var(--surf2);border-color:var(--accent);}
+.step-item::before{content:'';position:absolute;left:17px;top:34px;bottom:-4px;width:2px;background:var(--border);}
+.step-item:last-child::before{display:none;}
+.p-step-dot{position:absolute;left:8px;top:10px;width:20px;height:20px;border-radius:50%;border:2px solid var(--border);background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:all .3s;}
+.p-step-dot.running{border-color:var(--amber);background:rgba(245,158,11,.15);animation:spin-glow 1.2s infinite;}
+.p-step-dot.done{border-color:var(--green);background:rgba(16,185,129,.12);color:var(--green);font-size:9px;}
+.p-step-dot.escalated{border-color:var(--red);background:rgba(239,68,68,.12);color:var(--red);font-size:9px;}
+.p-step-dot.skipped{border-color:var(--border);opacity:.4;}
+@keyframes spin-glow{0%,100%{box-shadow:0 0 6px rgba(245,158,11,.3)}50%{box-shadow:0 0 16px rgba(245,158,11,.7)}}
+.step-name{font-size:12px;font-weight:600;}
+.step-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.step-detail-txt{font-size:10px;color:var(--text);opacity:.7;margin-top:3px;font-family:monospace;}
+.step-dur{position:absolute;right:10px;top:10px;font-size:10px;font-family:monospace;color:var(--muted);}
+.step-dur.fast{color:var(--green);}.step-dur.slow{color:var(--amber);}
+.run-state{font-size:12px;font-weight:600;}
+.run-state.idle{color:var(--muted);}.run-state.running{color:var(--amber);}.run-state.done{color:var(--green);}.run-state.escalated{color:var(--red);}
+.run-timer{font-size:11px;color:var(--muted);font-family:monospace;}
 
-/* Gauge (owner cost) */
-.gauge-wrap { padding: 6px 0; }
-.gauge-row  { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
-.gauge-bar  { height: 8px; background: var(--surf2); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
-.gauge-fill { height: 100%; border-radius: 4px; transition: width .6s; }
+/* ── Pipeline inspector ── */
+.inspector{display:flex;flex-direction:column;overflow:hidden;}
+.insp-hdr{padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:10px;}
+.insp-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+.insp-title{font-size:15px;font-weight:700;}
+.insp-agent{font-size:11px;color:var(--muted);margin-top:2px;}
+.insp-badges{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
+.type-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.type-llm{background:rgba(139,92,246,.15);color:var(--purple);border:1px solid rgba(139,92,246,.3);}
+.type-routing{background:rgba(100,100,100,.12);color:var(--muted);border:1px solid var(--border);}
+.type-retrieval{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.3);}
+.type-rule{background:rgba(20,184,166,.12);color:var(--teal);border:1px solid rgba(20,184,166,.3);}
+.type-policy{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.3);}
+.type-persistence{background:rgba(99,102,241,.1);color:var(--accent);border:1px solid rgba(99,102,241,.3);}
+.status-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
+.sb-running{background:rgba(245,158,11,.15);color:var(--amber);}
+.sb-done{background:rgba(16,185,129,.12);color:var(--green);}
+.sb-escalated{background:rgba(239,68,68,.12);color:var(--red);}
+.sb-pending{background:rgba(100,100,100,.1);color:var(--muted);}
+.insp-desc{flex:1;display:flex;flex-direction:column;gap:2px;}
+.insp-body{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:14px;}
+.insp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:10px;}
+.insp-empty-icon{font-size:36px;}
+.io-section{}
+.io-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.io-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.io-waiting{font-size:12px;color:var(--muted);padding:10px;background:var(--surf2);border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.io-waiting::before{content:'⏳';}
+.json-block{background:var(--surf2);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;line-height:1.7;overflow-x:auto;}
+.json-key{color:#7dd3fc;}.json-str{color:#86efac;}.json-num{color:#fbbf24;}.json-bool{color:#f472b6;}.json-null{color:var(--muted);}
+.json-trunc{color:var(--muted);font-style:italic;font-size:10px;margin-top:4px;}
+.desc-box{background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:8px 12px;font-size:12px;color:var(--muted);line-height:1.65;}
+.esc-flash{margin-bottom:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:7px;padding:10px 14px;display:flex;align-items:flex-start;gap:8px;font-size:12px;}
+.esc-flash strong{color:var(--red);display:block;margin-bottom:2px;}
 
-/* Status hero (tenant) */
-.status-hero {
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-  border-radius: 8px; margin-bottom: 14px;
-}
-.sh-resolved  { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25); }
-.sh-escalated { background: rgba(239,68,68,.08);  border: 1px solid rgba(239,68,68,.25); }
-.sh-pending   { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); }
-.sh-icon  { font-size: 28px; }
-.sh-title { font-size: 14px; font-weight: 700; }
-.sh-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+/* Pipeline strip */
+.pipeline-strip{padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;overflow-x:auto;gap:0;}
+.ps-node{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;}
+.ps-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s;cursor:pointer;}
+.ps-dot:hover{border-color:var(--accent);}
+.ps-dot.running{border-color:var(--amber);animation:glow-a 1s infinite;}
+.ps-dot.done{border-color:var(--green);background:rgba(16,185,129,.1);}
+.ps-dot.escalated{border-color:var(--red);background:rgba(239,68,68,.1);}
+.ps-dot.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.4);}
+.ps-lbl{font-size:8px;color:var(--muted);text-align:center;}
+.ps-arr{color:var(--border);padding:0 4px;padding-bottom:12px;font-size:16px;flex-shrink:0;transition:color .3s;}
+.ps-arr.lit{color:var(--green);}.ps-arr.esc{color:var(--red);}
+@keyframes glow-a{0%,100%{box-shadow:0 0 6px rgba(245,158,11,.3)}50%{box-shadow:0 0 18px rgba(245,158,11,.6)}}
 
-/* Pipeline steps */
-.steps { display: flex; align-items: center; padding: 10px 0; }
-.step  { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.step-dot {
-  width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
-  display: flex; align-items: center; justify-content: center; font-size: 11px;
-  background: var(--surf2); transition: all .3s;
-}
-.step-dot.done     { border-color: var(--green); background: rgba(16,185,129,.1); }
-.step-dot.escalated { border-color: var(--red); background: rgba(239,68,68,.1); }
-.step-lbl { font-size: 9px; color: var(--muted); text-align: center; max-width: 48px; }
-.step-conn { flex: 1; height: 2px; background: var(--border); margin: 0 3px 14px; transition: background .3s; }
-.step-conn.lit { background: var(--green); }
-.step-conn.esc { background: var(--red); }
+/* BPMN tab */
+.itabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.itab{flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;}
+.itab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.itab:hover:not(.active){color:var(--text);}
+#details-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+#bpmn-panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+#bpmn-bar{padding:7px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surf2);gap:8px;}
+#bpmn-step-pill{font-size:11px;font-weight:600;color:var(--muted);flex:1;}
+#bpmn-step-pill.running{color:var(--amber);}
+#bpmn-step-pill.done{color:var(--green);}
+#bpmn-step-pill.escalated{color:var(--red);}
+#bpmn-legend{display:flex;gap:5px;flex-shrink:0;}
+.bleg{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.3px;}
+.bleg.running{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.35);}
+.bleg.done{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.3);}
+.bleg.escalated{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+#bpmn-svg-wrap{flex:1;overflow:auto;padding:10px;}
+#bpmn-svg-wrap svg{width:100%;height:auto;display:block;border-radius:6px;background:#f5f4ed;box-shadow:0 1px 6px rgba(0,0,0,.18);}
+@keyframes bpmn-pulse{0%,100%{opacity:.6}50%{opacity:1;filter:drop-shadow(0 0 6px currentColor)}}
 
-/* Escalation banner */
-.esc-banner {
-  margin-bottom: 14px; background: rgba(239,68,68,.08);
-  border: 1px solid rgba(239,68,68,.3); border-radius: 8px;
-  padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px;
-}
-.esc-icon { font-size: 20px; flex-shrink: 0; }
-.esc-title { color: var(--red); font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-.esc-body  { font-size: 12px; color: var(--muted); }
+/* Voice recorder */
+.rec-wrap{position:relative;}
+.rec-btn{position:absolute;bottom:6px;right:6px;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--surf2);color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.rec-btn:hover{border-color:var(--red);color:var(--red);}
+.rec-btn.recording{border-color:var(--red);background:rgba(239,68,68,.18);color:var(--red);animation:rec-pulse 1.2s ease-in-out infinite;}
+.rec-btn.processing{border-color:var(--amber);background:rgba(245,158,11,.15);color:var(--amber);}
+@keyframes rec-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}60%{box-shadow:0 0 0 7px rgba(239,68,68,0)}}
+.wave-wrap{display:none;margin-top:5px;background:var(--surf3);border-radius:5px;border:1px solid var(--border);padding:4px 6px;}
+.wave-wrap.active{display:block;}
+.wave-row{display:flex;align-items:center;gap:8px;}
+.wave-timer{font-size:10px;font-family:monospace;color:var(--red);font-weight:700;flex-shrink:0;}
+.wave-timer.processing{color:var(--amber);}
+canvas#waveCanvas{flex:1;height:32px;border-radius:3px;}
+.rec-hint{font-size:10px;color:var(--muted);margin-top:3px;}
+.rec-transcript{margin-top:5px;padding:6px 8px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25);border-radius:5px;font-size:11px;color:var(--text);line-height:1.5;display:none;}
+.rec-transcript.show{display:block;}
+.rec-transcript strong{color:var(--green);display:block;font-size:9px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
 
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Haus<span>mind</span></div>
+  <div class="logo">Home <span>Theo</span></div>
   <div class="role-tabs" id="roleTabs">
-    <button class="role-tab" data-role="tenant"   onclick="setRole('tenant')">   🏠 Tenant</button>
-    <button class="role-tab" data-role="manager"  onclick="setRole('manager')">  📋 Manager <span class="tab-badge" id="mgr-badge"></span></button>
-    <button class="role-tab" data-role="owner"    onclick="setRole('owner')">    💼 Owner</button>
-    <button class="role-tab" data-role="facility" onclick="setRole('facility')"> 🔧 Facility</button>
+    <button class="role-tab" data-role="tenant"   onclick="setView('tenant')">🏠 Tenant</button>
+    <button class="role-tab" data-role="manager"  onclick="setView('manager')">📋 Property Manager <span class="tab-badge" id="mgr-badge"></span></button>
+    <button class="role-tab" data-role="owner"    onclick="setView('owner')">💼 Owner</button>
+    <button class="role-tab" data-role="vendor"   onclick="setView('vendor')">🔧 Vendor</button>
+    <button class="role-tab" data-role="pipeline" onclick="setView('pipeline')">🔬 Pipeline Inspector</button>
   </div>
   <div class="hdr-right">
     <div class="api-dot" id="apiDot"></div>
     <span id="apiLbl">connecting…</span>
-    <button class="btn-ico" onclick="refresh()">↻</button>
-    <a class="btn-ico" href="/dashboard" target="_blank">Pipeline View ↗</a>
+    <button class="hdr-btn" onclick="refresh()">↻ Refresh</button>
   </div>
 </header>
 
-<div class="main">
+<!-- ── Roles layout (2-col) ── -->
+<div class="view-layout two-col" id="rolesLayout">
   <div class="list-panel" id="listPanel"></div>
   <div class="detail-panel" id="detailPanel">
     <div class="detail-body">
-      <div class="empty-state">
-        <div class="empty-icon">🏢</div>
-        <div>Select a ticket to view details</div>
-      </div>
+      <div class="empty-state"><div class="empty-icon">🏢</div><div>Select a ticket to view details</div></div>
     </div>
   </div>
 </div>
 
-<script>
-// ── Constants ─────────────────────────────────────────────────────────────────
-const BASE = window.location.origin;
+<!-- ── Pipeline layout (3-col) ── -->
+<div class="view-layout three-col" id="pipeLayout" style="display:none">
 
+  <!-- Sidebar: submit + scenarios + history -->
+  <div class="pipe-sidebar">
+    <div class="sec">
+      <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between">
+        Submit Request
+        <span class="run-state idle" id="runState" style="font-size:10px">Ready</span>
+        <span class="run-timer" id="runTimer" style="font-size:10px"></span>
+      </div>
+      <label>Message</label>
+      <div class="rec-wrap">
+        <textarea id="rawText" placeholder="Describe the issue… or press 🎤 to record" style="padding-right:34px"></textarea>
+        <button class="rec-btn" id="recBtn" onclick="toggleRecording()" title="Record audio">🎤</button>
+      </div>
+      <div class="wave-wrap" id="waveWrap">
+        <div class="wave-row">
+          <span class="wave-timer" id="waveTimer">0:00</span>
+          <canvas id="waveCanvas" width="200" height="32"></canvas>
+        </div>
+        <div class="rec-hint" id="recHint">Recording… click ⏹ to stop</div>
+      </div>
+      <div class="rec-transcript" id="recTranscript">
+        <strong>Transcript</strong><span id="recTranscriptText"></span>
+      </div>
+      <label>Property</label>
+      <input id="propertyHint" value="The Delta Campus Berlin">
+      <label>Channel</label>
+      <select id="channel">
+        <option value="chat">Chat</option><option value="phone">Phone</option>
+        <option value="sms">SMS</option><option value="email">Email</option>
+        <option value="walk_in">Walk-in</option>
+      </select>
+      <label>Sentiment override</label>
+      <select id="sentiment">
+        <option value="">— auto-detect —</option><option value="angry">Angry</option>
+        <option value="frustrated">Frustrated</option><option value="neutral">Neutral</option>
+      </select>
+      <button class="btn-run" id="runBtn" onclick="run()">▶ Run Pipeline</button>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Delta Campus Scenarios</div>
+      <div class="presets" id="presetGrid"></div>
+    </div>
+    <div class="sec-title" style="padding:10px 14px 4px;flex-shrink:0">History</div>
+    <div class="hist-list" id="histList"><div style="font-size:11px;color:var(--muted);padding:8px">No requests yet</div></div>
+  </div>
+
+  <!-- Trace column -->
+  <div class="trace">
+    <div class="trace-hdr">
+      <span class="trace-hdr-title">Step-by-step Trace</span>
+      <span class="trace-summary" id="traceSummary">—</span>
+    </div>
+    <div class="step-list" id="stepList">
+      <div style="font-size:11px;color:var(--muted);padding:12px;text-align:center">Run a pipeline to see the agent trace</div>
+    </div>
+  </div>
+
+  <!-- Inspector -->
+  <div class="inspector" id="inspector">
+    <div class="pipeline-strip" id="pipelineStrip"></div>
+    <div class="itabs">
+      <button class="itab active" id="tab-details" onclick="switchTab('details')">🔍 Step Details</button>
+      <button class="itab" id="tab-bpmn" onclick="switchTab('bpmn')">📊 BPMN Flow</button>
+    </div>
+    <div id="details-panel">
+      <div class="insp-body">
+        <div class="insp-empty">
+          <div class="insp-empty-icon">🔬</div>
+          <div style="font-size:13px">Click a step to inspect its input and output</div>
+          <div style="font-size:11px">Submit a request first to start the pipeline</div>
+        </div>
+      </div>
+    </div>
+    <div id="bpmn-panel">
+      <div id="bpmn-bar">
+        <span id="bpmn-step-pill">Run a pipeline to see the workflow live</span>
+        <div id="bpmn-legend">
+          <span class="bleg running">Running</span>
+          <span class="bleg done">Done</span>
+          <span class="bleg escalated">Escalated</span>
+        </div>
+      </div>
+      <div id="bpmn-svg-wrap"></div>
+    </div>
+  </div>
+
+</div><!-- #pipeLayout -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SHARED CONSTANTS
+// ═══════════════════════════════════════════════════════════
 const CAT_ICON = {
   heating:'🌡️', plumbing:'🚿', electrical:'⚡', elevator:'🛗',
   access_keys:'🔑', cleaning:'🧹', financial:'💶', legal:'⚖️', other:'❓',
 };
-
 const PIPELINE_NODES = [
-  {id:'intake',    lbl:'Received'},
-  {id:'triage',    lbl:'Triaged'},
-  {id:'context',   lbl:'Context'},
-  {id:'vendor',    lbl:'Vendor'},
-  {id:'risk_gate', lbl:'Gate'},
-  {id:'comms',     lbl:'Comms'},
-  {id:'closed',    lbl:'Done'},
+  {id:'intake',lbl:'Received'},{id:'triage',lbl:'Triaged'},{id:'context',lbl:'Context'},
+  {id:'vendor',lbl:'Vendor'},{id:'risk_gate',lbl:'Gate'},{id:'comms',lbl:'Comms'},{id:'closed',lbl:'Done'},
 ];
 
-const PRESETS = {
-  '🥶 Cold coworking': { txt: 'The open-plan coworking area on the 3rd floor has been cold all morning. Radiators not heating up, people are working in their coats.', ch: 'chat' },
-  '🚿 Sink blocked':   { txt: 'The shared kitchen sink on the 4th floor is completely blocked — water is backing up onto the counter.', ch: 'sms' },
-  '🔑 Locked out':     { txt: 'My transponder card stopped working and I cannot get into the building. Standing outside for 15 min.', ch: 'chat' },
-  '💡 AV failure':     { txt: 'The AV system and overhead lights in the 3rd floor meeting room stopped working 20 min before a client presentation.', ch: 'phone' },
-  '😡 Gym angry':      { txt: 'The gym AC is not cooling. I reported this THREE times already! Completely unacceptable!!!', ch: 'phone', s: 'angry' },
-  '🚨 Lift stuck':     { txt: 'The middle lift in the atrium stopped between floors 2 and 3 with someone inside — alarm pressed!', ch: 'phone' },
-  '💶 Event space':    { txt: 'The event space on the 4th floor is too cold for our workshop. 40 guests arriving in 2 hours.', ch: 'email' },
-  '⚖️ Legal question': { txt: 'The event space above causes serious noise disturbance every evening. I want to understand my rights and whether this violates my contract.', ch: 'email' },
+// ═══════════════════════════════════════════════════════════
+// ROLES SPA STATE + LOGIC
+// ═══════════════════════════════════════════════════════════
+let RS = { role:'manager', tickets:[], selected:null, filter:'all', formOpen:false };
+
+const ROLE_PRESETS = {
+  '🥶 Cold coworking':{ txt:'The open-plan coworking area on the 3rd floor has been cold all morning. Radiators not heating up, people are wearing coats.', ch:'chat' },
+  '🚿 Sink blocked':  { txt:'The shared kitchen sink on the 4th floor is completely blocked — water is backing up onto the counter.', ch:'sms' },
+  '🔑 Locked out':    { txt:'My transponder card stopped working and I cannot get into the building. Standing outside for 15 min.', ch:'chat' },
+  '💡 AV failure':    { txt:'The AV system and lights in the 3rd floor meeting room stopped working 20 min before a client presentation.', ch:'phone' },
+  '😡 Gym angry':     { txt:'The gym AC is not cooling. I reported this THREE times already! Completely unacceptable!!!', ch:'phone', s:'angry' },
+  '🚨 Lift stuck':    { txt:'The middle lift in the atrium stopped between floors 2 and 3 with someone inside — alarm pressed!', ch:'phone' },
+  '💶 Event space':   { txt:'The event space on the 4th floor is too cold for our workshop. 40 guests arriving in 2 hours.', ch:'email' },
+  '⚖️ Legal question':{ txt:'The event space causes serious noise disturbance every evening. I want to understand my rights.', ch:'email' },
 };
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let S = { role: 'manager', tickets: [], selected: null, filter: 'all', formOpen: false };
-
-// ── API ───────────────────────────────────────────────────────────────────────
 async function loadTickets() {
   try {
-    const r = await fetch(BASE + '/api/requests');
+    const r = await fetch('/api/requests');
     if (!r.ok) throw new Error(r.status);
     const d = await r.json();
-    S.tickets = d.tickets || [];
-    updateStatus(true);
+    RS.tickets = d.tickets || [];
+    updateApiStatus(true);
     updateManagerBadge();
     renderList();
-  } catch { updateStatus(false); }
+  } catch { updateApiStatus(false); }
 }
 
 async function getTicketStatus(id) {
-  try {
-    const r = await fetch(BASE + '/api/requests/' + id + '/status');
-    return r.ok ? r.json() : null;
-  } catch { return null; }
+  try { const r = await fetch('/api/requests/'+id+'/status'); return r.ok ? r.json() : null; }
+  catch { return null; }
 }
 
 async function postRequest(body) {
-  const r = await fetch(BASE + '/api/requests', {
-    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body),
-  });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const r = await fetch('/api/requests', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  if (!r.ok) throw new Error('HTTP '+r.status);
   return r.json();
 }
 
-// ── Role switch ───────────────────────────────────────────────────────────────
-function setRole(role) {
-  S.role = role; S.selected = null; S.filter = 'all'; S.formOpen = false;
-  document.querySelectorAll('.role-tab').forEach(t => t.classList.toggle('active', t.dataset.role === role));
-  renderList();
-  setDetailEmpty();
-}
-
 function updateManagerBadge() {
-  const esc = S.tickets.filter(t => t.decision === 'escalate_human').length;
+  const esc = RS.tickets.filter(t => t.decision==='escalate_human').length;
   const badge = document.getElementById('mgr-badge');
-  if (badge) { badge.textContent = esc; badge.classList.toggle('show', esc > 0); }
+  if (badge) { badge.textContent=esc; badge.classList.toggle('show', esc>0); }
 }
 
-// ── List rendering ─────────────────────────────────────────────────────────────
 function renderList() {
   document.getElementById('listPanel').innerHTML =
-    S.role === 'tenant'   ? buildTenantList()   :
-    S.role === 'manager'  ? buildManagerList()  :
-    S.role === 'owner'    ? buildOwnerList()     :
-                            buildFacilityList();
+    RS.role==='tenant'  ? buildTenantList()  :
+    RS.role==='manager' ? buildManagerList() :
+    RS.role==='owner'   ? buildOwnerList()   : buildVendorList();
 }
 
 function ticketCards(tickets) {
   if (!tickets.length) return '<div style="font-size:11px;color:var(--muted);padding:16px;text-align:center">No tickets</div>';
   return tickets.map(t => {
-    const p   = t.payload || {};
-    const esc = t.decision === 'escalate_human';
-    const auto = t.decision === 'auto_resolve';
-    const lc  = esc ? 'esc' : (t.urgency === 'emergency' || t.urgency === 'high') ? 'urg' : '';
-    return `<div class="ticket-item ${lc} ${t.request_id === S.selected ? 'sel' : ''}" onclick="selectTicket('${t.request_id}')">
-      <div class="ti-top">
-        <span style="font-size:13px">${CAT_ICON[t.category]||'❓'}</span>
-        <span class="ti-id">${t.request_id}</span>
-        <span class="bdg ${esc?'bdg-esc':auto?'bdg-auto':'bdg-pend'}">${esc?'Escalated':auto?'Resolved':'Pending'}</span>
-      </div>
+    const p=t.payload||{}, esc=t.decision==='escalate_human', auto=t.decision==='auto_resolve';
+    const lc = esc?'esc':(t.urgency==='emergency'||t.urgency==='high')?'urg':'';
+    return `<div class="ticket-item ${lc} ${t.request_id===RS.selected?'sel':''}" onclick="selectTicket('${t.request_id}')">
+      <div class="ti-top"><span style="font-size:13px">${CAT_ICON[t.category]||'❓'}</span><span class="ti-id">${t.request_id}</span>
+        <span class="bdg ${esc?'bdg-esc':auto?'bdg-auto':'bdg-pend'}">${esc?'Escalated':auto?'Resolved':'Pending'}</span></div>
       <div class="ti-txt">${x(t.raw_text)}</div>
-      <div class="ti-meta">
-        <span class="cat-tag">${t.category||'?'}</span>
+      <div class="ti-meta"><span class="cat-tag">${t.category||'?'}</span>
         ${t.urgency?`<span class="urg-tag urg-${t.urgency}">${t.urgency}</span>`:''}
         ${p.vendor?`<span class="cost-tag">€${p.vendor.estimated_cost_eur}</span>`:''}
-        <span style="font-size:10px;color:var(--muted);margin-left:auto">${ago(t.created_at)}</span>
-      </div>
+        <span style="font-size:10px;color:var(--muted);margin-left:auto">${ago(t.created_at)}</span></div>
     </div>`;
   }).join('');
 }
 
 function buildTenantList() {
-  const presetsHtml = Object.entries(PRESETS).map(([l]) =>
-    `<span class="preset-chip" onclick="applyPreset(${JSON.stringify(l)})">${l}</span>`).join('');
-
+  const presetsHtml = Object.entries(ROLE_PRESETS).map(([l]) =>
+    `<span class="preset-chip" onclick="applyRolePreset(${JSON.stringify(l)})">${l}</span>`).join('');
   return `
   <div class="panel-hdr">
     <div class="panel-title">Your Issues</div>
-    <button class="btn-outline" onclick="toggleForm()">${S.formOpen ? '✕ Cancel' : '+ Report an Issue'}</button>
+    <button class="btn-outline" onclick="toggleRoleForm()">${RS.formOpen?'✕ Cancel':'+ Report an Issue'}</button>
   </div>
-  <div class="form-wrap ${S.formOpen?'open':''}" id="submitForm">
+  <div class="form-wrap ${RS.formOpen?'open':''}" id="submitForm">
     <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px">Quick scenarios</div>
     <div class="presets-row">${presetsHtml}</div>
     <label>Describe your issue</label>
     <textarea id="f-txt" rows="3" placeholder="e.g. The heating is broken…"></textarea>
     <label>Channel</label>
     <select id="f-ch"><option value="chat">Chat</option><option value="phone">Phone</option><option value="sms">SMS</option><option value="email">Email</option><option value="walk_in">Walk-in</option></select>
-    <label>Sentiment (optional override)</label>
-    <select id="f-sent"><option value="">— auto-detect —</option><option value="angry">Angry</option><option value="frustrated">Frustrated</option><option value="neutral">Neutral</option><option value="calm">Calm</option></select>
+    <label>Sentiment (optional)</label>
+    <select id="f-sent"><option value="">— auto-detect —</option><option value="angry">Angry</option><option value="frustrated">Frustrated</option><option value="neutral">Neutral</option></select>
     <button class="btn-primary" id="submitBtn" onclick="doSubmit()">▶ Submit Request</button>
   </div>
-  <div class="ticket-list">${ticketCards(S.tickets)}</div>`;
+  <div class="ticket-list">${ticketCards(RS.tickets)}</div>`;
 }
 
 function buildManagerList() {
-  const all  = S.tickets;
-  const esc  = all.filter(t => t.decision === 'escalate_human');
-  const shown = S.filter === 'escalated' ? esc : all;
-  const total = all.length;
-  const totalCost = all.reduce((s,t) => s + (t.payload?.vendor?.estimated_cost_eur||0), 0);
-
+  const all=RS.tickets, esc=all.filter(t=>t.decision==='escalate_human');
+  const shown = RS.filter==='escalated'?esc:all;
+  const cost = all.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
   return `
   <div class="panel-hdr">
     <div class="panel-title">Ticket Queue</div>
     <div class="stats-grid">
-      <div class="stat blue"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+      <div class="stat blue"><div class="stat-n">${all.length}</div><div class="stat-l">Total</div></div>
       <div class="stat red"><div class="stat-n">${esc.length}</div><div class="stat-l">Escalated</div></div>
       <div class="stat green"><div class="stat-n">${all.filter(t=>t.decision==='auto_resolve').length}</div><div class="stat-l">Auto</div></div>
-      <div class="stat amber"><div class="stat-n">€${Math.round(totalCost)}</div><div class="stat-l">Est. Cost</div></div>
+      <div class="stat amber"><div class="stat-n">€${Math.round(cost)}</div><div class="stat-l">Cost</div></div>
     </div>
     <div class="filter-chips">
-      <button class="chip ${S.filter==='all'?'on':''}" onclick="setFilter('all')">All (${total})</button>
-      <button class="chip ${S.filter==='escalated'?'on':''}" onclick="setFilter('escalated')">🚨 Needs Action (${esc.length})</button>
+      <button class="chip ${RS.filter==='all'?'on':''}" onclick="setFilter('all')">All (${all.length})</button>
+      <button class="chip ${RS.filter==='escalated'?'on':''}" onclick="setFilter('escalated')">🚨 Action (${esc.length})</button>
     </div>
   </div>
   <div class="ticket-list">${ticketCards(shown)}</div>`;
 }
 
 function buildOwnerList() {
-  const all  = S.tickets;
-  const esc  = all.filter(t => t.decision === 'escalate_human').length;
-  const auto = all.filter(t => t.decision === 'auto_resolve').length;
-  const cost = all.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
-  const rate = all.length ? Math.round(auto/all.length*100) : 0;
-  const sorted = [...all].sort((a,b)=>(b.payload?.vendor?.estimated_cost_eur||0)-(a.payload?.vendor?.estimated_cost_eur||0));
-
+  const all=RS.tickets, esc=all.filter(t=>t.decision==='escalate_human').length;
+  const auto=all.filter(t=>t.decision==='auto_resolve').length;
+  const cost=all.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
+  const rate=all.length?Math.round(auto/all.length*100):0;
+  const sorted=[...all].sort((a,b)=>(b.payload?.vendor?.estimated_cost_eur||0)-(a.payload?.vendor?.estimated_cost_eur||0));
   return `
   <div class="panel-hdr">
     <div class="panel-title">Portfolio Overview</div>
@@ -477,12 +544,11 @@ function buildOwnerList() {
   <div class="ticket-list">${ticketCards(sorted)}</div>`;
 }
 
-function buildFacilityList() {
-  const urgOrd = { emergency:0, high:1, normal:2, low:3 };
-  const wo = [...S.tickets.filter(t => t.decision==='auto_resolve' && t.payload?.vendor)]
-    .sort((a,b) => (urgOrd[a.urgency]||9)-(urgOrd[b.urgency]||9));
-  const cost = wo.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
-
+function buildVendorList() {
+  const urgOrd={emergency:0,high:1,normal:2,low:3};
+  const wo=[...RS.tickets.filter(t=>t.decision==='auto_resolve'&&t.payload?.vendor)]
+    .sort((a,b)=>(urgOrd[a.urgency]||9)-(urgOrd[b.urgency]||9));
+  const cost=wo.reduce((s,t)=>s+(t.payload?.vendor?.estimated_cost_eur||0),0);
   return `
   <div class="panel-hdr">
     <div class="panel-title">Open Work Orders</div>
@@ -491,265 +557,609 @@ function buildFacilityList() {
       <div class="stat amber"><div class="stat-n">€${Math.round(cost)}</div><div class="stat-l">Est. Total</div></div>
     </div>
   </div>
-  <div class="ticket-list">${wo.length ? ticketCards(wo) : '<div style="font-size:11px;color:var(--muted);padding:16px;text-align:center">No open work orders</div>'}</div>`;
+  <div class="ticket-list">${wo.length?ticketCards(wo):'<div style="font-size:11px;color:var(--muted);padding:16px;text-align:center">No open work orders</div>'}</div>`;
 }
 
-// ── Ticket selection ───────────────────────────────────────────────────────────
 async function selectTicket(id) {
-  S.selected = id;
-  renderList();
-  const t = S.tickets.find(t => t.request_id === id);
-  if (!t) return;
-  const statusData = await getTicketStatus(id);
-  renderDetail(t, statusData);
+  RS.selected=id; renderList();
+  const t=RS.tickets.find(t=>t.request_id===id); if (!t) return;
+  const sd=await getTicketStatus(id);
+  renderDetail(t,sd);
 }
 
-// ── Detail rendering ──────────────────────────────────────────────────────────
 function setDetailEmpty() {
-  document.getElementById('detailPanel').innerHTML = `
-    <div class="detail-body">
-      <div class="empty-state">
-        <div class="empty-icon">🏢</div>
-        <div>Select a ticket to view details</div>
-      </div>
-    </div>`;
+  document.getElementById('detailPanel').innerHTML=`
+    <div class="detail-body"><div class="empty-state"><div class="empty-icon">🏢</div><div>Select a ticket to view details</div></div></div>`;
 }
 
-function renderDetail(t, sd) {
-  switch (S.role) {
-    case 'tenant':   renderTenantDetail(t, sd);   break;
-    case 'manager':  renderManagerDetail(t, sd);  break;
-    case 'owner':    renderOwnerDetail(t, sd);    break;
-    case 'facility': renderFacilityDetail(t, sd); break;
-  }
+function renderDetail(t,sd) {
+  const role=RS.role;
+  if (role==='tenant')  renderTenantDetail(t,sd);
+  else if (role==='manager') renderManagerDetail(t,sd);
+  else if (role==='owner')   renderOwnerDetail(t,sd);
+  else renderVendorDetail(t,sd);
 }
 
-// ── Tenant detail ─────────────────────────────────────────────────────────────
-function renderTenantDetail(t, sd) {
-  const p = t.payload || {}, v = p.vendor;
-  const esc  = t.decision === 'escalate_human';
-  const auto = t.decision === 'auto_resolve';
-  const heroClass = esc ? 'sh-escalated' : auto ? 'sh-resolved' : 'sh-pending';
-  const heroIcon  = esc ? '🚨' : auto ? '✅' : '⏳';
-  const heroTitle = esc ? 'Escalated to Human Support' : auto ? 'Issue Being Resolved' : 'Processing…';
-  const heroSub   = esc ? 'A team member will contact you shortly.'
-                   : auto ? (v ? `Vendor scheduled: ${v.proposed_window}` : 'Being handled.')
-                   : 'Your request is being processed.';
-
-  // Build pipeline steps from events
-  const doneSet = new Set((sd?.events||[]).filter(e=>e.status==='done').map(e=>e.node));
-  const steps = PIPELINE_NODES.map((n, i) => {
-    const done = doneSet.has(n.id);
-    const dc = done ? (esc && n.id==='risk_gate' ? 'escalated' : 'done') : '';
-    const icon = done ? (esc && n.id==='risk_gate' ? '✕' : '✓') : '○';
-    const next = PIPELINE_NODES[i+1];
-    const connDone = next && doneSet.has(next.id);
-    const connCls  = connDone ? (esc && i>=3 ? 'esc' : 'lit') : '';
+function renderTenantDetail(t,sd) {
+  const p=t.payload||{},v=p.vendor,esc=t.decision==='escalate_human',auto=t.decision==='auto_resolve';
+  const heroClass=esc?'sh-escalated':auto?'sh-resolved':'sh-pending';
+  const heroIcon=esc?'🚨':auto?'✅':'⏳';
+  const heroTitle=esc?'Escalated to Human Support':auto?'Issue Being Resolved':'Processing…';
+  const heroSub=esc?'A team member will contact you shortly.':auto?(v?`Vendor scheduled: ${v.proposed_window}`:'Being handled.'):'Your request is being processed.';
+  const doneSet=new Set((sd?.events||[]).filter(e=>e.status==='done').map(e=>e.node));
+  const steps=PIPELINE_NODES.map((n,i) => {
+    const done=doneSet.has(n.id),dc=done?(esc&&n.id==='risk_gate'?'escalated':'done'):'';
+    const icon=done?(esc&&n.id==='risk_gate'?'✕':'✓'):'○';
+    const next=PIPELINE_NODES[i+1],connDone=next&&doneSet.has(next.id);
+    const connCls=connDone?(esc&&i>=3?'esc':'lit'):'';
     return `<div class="step"><div class="step-dot ${dc}">${icon}</div><div class="step-lbl">${n.lbl}</div></div>`
-      + (i < PIPELINE_NODES.length-1 ? `<div class="step-conn ${connCls}"></div>` : '');
+      +(i<PIPELINE_NODES.length-1?`<div class="step-conn ${connCls}"></div>`:'');
   }).join('');
-
-  setDetailShell(`#${t.request_id}`, t.raw_text, t.channel);
-  document.getElementById('detail-body-inner').innerHTML = `
-    <div class="status-hero ${heroClass}">
-      <div class="sh-icon">${heroIcon}</div>
-      <div><div class="sh-title">${heroTitle}</div><div class="sh-sub">${heroSub}</div></div>
-    </div>
-    <div style="margin-bottom:16px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">Pipeline Progress</div>
-      <div class="steps">${steps}</div>
-    </div>
+  setDetailShell(`#${t.request_id}`,t.raw_text,t.channel);
+  document.getElementById('detail-body-inner').innerHTML=`
+    <div class="status-hero ${heroClass}"><div class="sh-icon">${heroIcon}</div><div><div class="sh-title">${heroTitle}</div><div class="sh-sub">${heroSub}</div></div></div>
+    <div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">Pipeline Progress</div><div class="steps">${steps}</div></div>
     <div class="cards">
-      ${p.tenant_message ? card('💬 Message For You', `<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Prepared response:</div><div class="msg-box">${x(p.tenant_message)}</div>`) : ''}
-      ${v && auto ? card('🔧 Vendor Assigned', kv('Vendor', v.vendor_name, 'accent') + kv('Window', v.proposed_window) + kv('Est. Cost', '€'+v.estimated_cost_eur, 'blue')) : ''}
-      ${esc ? card('🚨 Human Review', `<div style="color:var(--red);font-size:12px;line-height:1.6">${x(p.escalation_reason||'Your issue requires personal attention from our team.')}</div><div style="font-size:11px;color:var(--muted);margin-top:8px">A property manager has been notified.</div>`, 'b-red') : ''}
-      ${card('📋 Issue Details', kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—'), 'accent') + kv('Priority', t.urgency, t.urgency==='emergency'||t.urgency==='high'?'red':'green') + kv('Channel', t.channel) + kv('Submitted', ago(t.created_at)))}
+      ${p.tenant_message?card('💬 Message For You',`<div class="msg-box">${x(p.tenant_message)}</div>`):''}
+      ${v&&auto?card('🔧 Vendor Assigned',kv('Vendor',v.vendor_name,'accent')+kv('Window',v.proposed_window)+kv('Est. Cost','€'+v.estimated_cost_eur,'blue')):''}
+      ${esc?card('🚨 Human Review',`<div style="color:var(--red);font-size:12px">${x(p.escalation_reason||'Your issue requires personal attention.')}</div>`,'b-red'):''}
+      ${card('📋 Issue Details',kv('Category',(CAT_ICON[t.category]||'')+' '+(t.category||'—'),'accent')+kv('Priority',t.urgency,t.urgency==='emergency'||t.urgency==='high'?'red':'green')+kv('Channel',t.channel)+kv('Submitted',ago(t.created_at)))}
     </div>`;
 }
 
-// ── Manager detail ────────────────────────────────────────────────────────────
-function renderManagerDetail(t, sd) {
-  const p = t.payload || {}, v = p.vendor, diag = p.diagnosis || {};
-  const esc  = t.decision === 'escalate_human';
-  const conf = diag.confidence != null ? Math.round(diag.confidence*100) : null;
-
-  setDetailShell(`#${t.request_id}`, t.raw_text,
-    `<span class="bdg ${esc?'bdg-esc':'bdg-auto'}">${esc?'🚨 Escalated':'✅ Auto-resolved'}</span>`);
-  document.getElementById('detail-body-inner').innerHTML = `
-    ${esc ? `<div class="esc-banner"><div class="esc-icon">🚨</div><div><div class="esc-title">Needs Human Action</div><div class="esc-body">${x(p.escalation_reason||'Manual review required.')}</div></div></div>` : ''}
+function renderManagerDetail(t,sd) {
+  const p=t.payload||{},v=p.vendor,diag=p.diagnosis||{},esc=t.decision==='escalate_human';
+  const conf=diag.confidence!=null?Math.round(diag.confidence*100):null;
+  setDetailShell(`#${t.request_id}`,t.raw_text,`<span class="bdg ${esc?'bdg-esc':'bdg-auto'}">${esc?'🚨 Escalated':'✅ Auto-resolved'}</span>`);
+  document.getElementById('detail-body-inner').innerHTML=`
+    ${esc?`<div class="esc-banner"><div class="esc-icon">🚨</div><div><div class="esc-title">Needs Human Action</div><div class="esc-body">${x(p.escalation_reason||'Manual review required.')}</div></div></div>`:''}
     <div class="cards">
-      ${card('🔍 AI Triage', `
-        ${kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—'), 'accent')}
-        ${kv('Urgency', t.urgency||'—', t.urgency==='emergency'||t.urgency==='high'?'red':t.urgency==='normal'?'green':'muted')}
-        ${kv('Sentiment', t.sentiment||'—', t.sentiment==='angry'?'red':t.sentiment==='frustrated'?'amber':'green')}
-        ${conf!=null ? kv('Confidence', conf+'%') + `<div class="prog-bar"><div class="prog-fill prog-accent" style="width:${conf}%"></div></div>` : ''}
-        ${diag.summary ? `<div class="msg-box" style="margin-top:8px;font-style:italic">"${x(diag.summary)}"</div>` : ''}
-      `)}
-      ${card('🛡️ Risk Gate', `
-        <div class="dec-hero">
-          <div class="dec-icon">${esc?'🚨':'✅'}</div>
-          <div class="dec-label ${esc?'esc':'auto'}">${esc?'Escalate to Human':'Auto Resolve'}</div>
-          ${esc?`<div class="dec-reason">${x(p.escalation_reason||'')}</div>`:''}
-        </div>
-        <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px">
-          ${rule('Legal topic',     t.category==='legal')}
-          ${rule('Financial topic', t.category==='financial')}
-          ${rule('Angry sentiment', t.sentiment==='angry')}
-          ${v ? rule('Cost €'+v.estimated_cost_eur+' > approval threshold', esc && (p.escalation_reason||'').includes('threshold')) : ''}
-        </div>
-      `)}
-      ${v ? card('🔧 Vendor Plan', kv('Vendor', v.vendor_name, 'accent') + kv('Window', v.proposed_window) + kv('Est. Cost', '€'+v.estimated_cost_eur, 'blue') + kv('Vendor ID', v.vendor_id)) : ''}
-      ${p.tenant_message ? card('💬 Tenant Message', `<div class="msg-box">${x(p.tenant_message)}</div>`) : ''}
-      ${p.vendor_message ? card('📋 Vendor Work Order', `<div class="msg-box">${x(p.vendor_message)}</div>`, 'full') : ''}
-      ${card('📝 Request Info', kv('Request ID', t.request_id) + kv('Channel', t.channel) + kv('Property', p.property?.name||'—') + kv('Manager', p.property?.manager||'—') + kv('Submitted', ago(t.created_at)))}
+      ${card('🔍 AI Triage',kv('Category',(CAT_ICON[t.category]||'')+' '+(t.category||'—'),'accent')+kv('Urgency',t.urgency||'—',t.urgency==='emergency'||t.urgency==='high'?'red':'green')+kv('Sentiment',t.sentiment||'—',t.sentiment==='angry'?'red':'green')+(conf!=null?kv('Confidence',conf+'%')+`<div class="prog-bar"><div class="prog-fill prog-accent" style="width:${conf}%"></div></div>`:'')+(diag.summary?`<div class="msg-box" style="margin-top:8px;font-style:italic">"${x(diag.summary)}"</div>`:''))}
+      ${card('🛡️ Risk Gate',`<div class="dec-hero"><div class="dec-icon">${esc?'🚨':'✅'}</div><div class="dec-label ${esc?'esc':'auto'}">${esc?'Escalate to Human':'Auto Resolve'}</div>${esc?`<div class="dec-reason">${x(p.escalation_reason||'')}</div>`:''}</div><div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px">${rule('Legal topic',t.category==='legal')}${rule('Financial topic',t.category==='financial')}${rule('Angry sentiment',t.sentiment==='angry')}</div>`)}
+      ${v?card('🔧 Vendor Plan',kv('Vendor',v.vendor_name,'accent')+kv('Window',v.proposed_window)+kv('Est. Cost','€'+v.estimated_cost_eur,'blue')+kv('Vendor ID',v.vendor_id)):''}
+      ${p.tenant_message?card('💬 Tenant Message',`<div class="msg-box">${x(p.tenant_message)}</div>`):''}
+      ${p.vendor_message?card('📋 Vendor Work Order',`<div class="msg-box">${x(p.vendor_message)}</div>`,'full'):''}
+      ${card('📝 Request Info',kv('Request ID',t.request_id)+kv('Channel',t.channel)+kv('Property',p.property?.name||'—')+kv('Manager',p.property?.manager||'—')+kv('Submitted',ago(t.created_at)))}
     </div>`;
 }
 
-// ── Owner detail ──────────────────────────────────────────────────────────────
-function renderOwnerDetail(t, sd) {
-  const p = t.payload || {}, v = p.vendor;
-  const esc  = t.decision === 'escalate_human';
-  const cost = v?.estimated_cost_eur || 0;
-  const prop = p.property || {};
-  const threshold = 800;
-  const pct = Math.min(Math.round(cost/threshold*100), 100);
-  const gc = pct>85?'red':pct>60?'amber':'green';
-
-  // Property portfolio stats
-  const propName = prop.name || '';
-  const propTix = S.tickets.filter(t2 => (t2.payload?.property?.name||'') === propName);
-  const propCost = propTix.reduce((s,t2)=>s+(t2.payload?.vendor?.estimated_cost_eur||0),0);
-  const propEsc  = propTix.filter(t2=>t2.decision==='escalate_human').length;
-  const propRate = propTix.length ? Math.round((propTix.length-propEsc)/propTix.length*100) : 0;
-
-  setDetailShell(`#${t.request_id}`, t.raw_text,
-    `<span class="bdg ${esc?'bdg-esc':'bdg-auto'}">${esc?'Escalated':'Auto-resolved'}</span>`);
-  document.getElementById('detail-body-inner').innerHTML = `<div class="cards">
-    ${card('💶 Cost Analysis', `
-      <div class="gauge-wrap">
-        <div class="gauge-row"><span style="color:var(--muted)">Estimated repair cost</span><span style="font-weight:700;color:var(--${gc})">€${cost}</span></div>
-        <div class="gauge-bar"><div class="gauge-fill prog-${gc}" style="width:${pct}%"></div></div>
-        <div class="gauge-row" style="font-size:10px;color:var(--muted)"><span>${pct}% of €${threshold} threshold</span><span>${pct>=100?'⚠ Requires approval':'✓ Within limit'}</span></div>
-      </div>
-      ${kv('Decision', esc?'🚨 Escalated':'✅ Auto-resolved', esc?'red':'green')}
-      ${esc && p.escalation_reason ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">${x(p.escalation_reason)}</div>` : ''}
-    `, esc?'b-red':'b-green')}
-    ${card('🏢 Property', kv('Property', prop.name||'—') + kv('Manager', prop.manager||'—') + kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—')) + kv('Urgency', t.urgency||'—', t.urgency==='emergency'||t.urgency==='high'?'red':'green'))}
-    ${propName ? card('📊 Portfolio — '+x(propName), kv('Total tickets', propTix.length) + kv('Escalated', propEsc, propEsc>0?'red':'green') + kv('Est. total spend', '€'+Math.round(propCost), 'blue') + kv('Auto-resolve rate', propRate+'%', 'green')) : ''}
-    ${v ? card('🔧 Vendor', kv('Vendor', v.vendor_name) + kv('Window', v.proposed_window) + kv('Cost', '€'+v.estimated_cost_eur, gc)) : ''}
+function renderOwnerDetail(t,sd) {
+  const p=t.payload||{},v=p.vendor,esc=t.decision==='escalate_human';
+  const cost=v?.estimated_cost_eur||0,prop=p.property||{},threshold=800;
+  const pct=Math.min(Math.round(cost/threshold*100),100),gc=pct>85?'red':pct>60?'amber':'green';
+  const propName=prop.name||'',propTix=RS.tickets.filter(t2=>(t2.payload?.property?.name||'')===propName);
+  const propCost=propTix.reduce((s,t2)=>s+(t2.payload?.vendor?.estimated_cost_eur||0),0);
+  const propEsc=propTix.filter(t2=>t2.decision==='escalate_human').length;
+  const propRate=propTix.length?Math.round((propTix.length-propEsc)/propTix.length*100):0;
+  setDetailShell(`#${t.request_id}`,t.raw_text,`<span class="bdg ${esc?'bdg-esc':'bdg-auto'}">${esc?'Escalated':'Auto-resolved'}</span>`);
+  document.getElementById('detail-body-inner').innerHTML=`<div class="cards">
+    ${card('💶 Cost Analysis',`<div class="gauge-wrap"><div class="gauge-row"><span style="color:var(--muted)">Estimated repair cost</span><span style="font-weight:700;color:var(--${gc})">€${cost}</span></div><div class="gauge-bar"><div class="gauge-fill prog-${gc}" style="width:${pct}%"></div></div><div class="gauge-row" style="font-size:10px;color:var(--muted)"><span>${pct}% of €${threshold}</span><span>${pct>=100?'⚠ Requires approval':'✓ Within limit'}</span></div></div>${kv('Decision',esc?'🚨 Escalated':'✅ Auto-resolved',esc?'red':'green')}`,esc?'b-red':'b-green')}
+    ${card('🏢 Property',kv('Property',prop.name||'—')+kv('Manager',prop.manager||'—')+kv('Category',(CAT_ICON[t.category]||'')+' '+(t.category||'—'))+kv('Urgency',t.urgency||'—',t.urgency==='emergency'||t.urgency==='high'?'red':'green'))}
+    ${propName?card('📊 Portfolio — '+x(propName),kv('Total tickets',propTix.length)+kv('Escalated',propEsc,propEsc>0?'red':'green')+kv('Est. spend','€'+Math.round(propCost),'blue')+kv('Auto-resolve rate',propRate+'%','green')):''}
+    ${v?card('🔧 Vendor',kv('Vendor',v.vendor_name)+kv('Window',v.proposed_window)+kv('Cost','€'+v.estimated_cost_eur,gc)):''}
   </div>`;
 }
 
-// ── Facility detail ───────────────────────────────────────────────────────────
-function renderFacilityDetail(t, sd) {
-  const p = t.payload || {}, v = p.vendor, prop = p.property || {};
-
-  setDetailShell(`#${t.request_id}`, t.raw_text,
-    `<span class="urg-tag urg-${t.urgency}">${t.urgency}</span>`);
-  document.getElementById('detail-body-inner').innerHTML = `<div class="cards">
-    ${v ? card('🔧 Work Order', kv('Vendor', v.vendor_name, 'accent') + kv('Window', v.proposed_window) + kv('Est. Cost', '€'+v.estimated_cost_eur, 'blue') + kv('Category', (CAT_ICON[t.category]||'')+' '+(t.category||'—')) + kv('Priority', t.urgency, t.urgency==='emergency'||t.urgency==='high'?'red':'green')) : card('ℹ️ Work Order', '<div style="color:var(--muted);font-size:12px">No vendor plan — ticket was escalated to human.</div>')}
-    ${prop.access_notes ? card('📍 Property Access', `<div style="font-size:12px;line-height:1.7">${x(prop.access_notes)}</div>${prop.key_holder?`<div style="margin-top:8px">${kv('Key Holder', prop.key_holder)}</div>`:''}`) : ''}
-    ${card('📝 Issue Report', `<div class="msg-box">${x(t.raw_text)}</div>${kv('Channel', t.channel)+kv('Received', ago(t.created_at))}`)}
-    ${p.vendor_message ? card('📋 Full Work Order', `<div class="msg-box">${x(p.vendor_message)}</div>`, 'full') : ''}
+function renderVendorDetail(t,sd) {
+  const p=t.payload||{},v=p.vendor,prop=p.property||{};
+  setDetailShell(`#${t.request_id}`,t.raw_text,`<span class="urg-tag urg-${t.urgency}">${t.urgency}</span>`);
+  document.getElementById('detail-body-inner').innerHTML=`<div class="cards">
+    ${v?card('🔧 Work Order',kv('Vendor',v.vendor_name,'accent')+kv('Window',v.proposed_window)+kv('Est. Cost','€'+v.estimated_cost_eur,'blue')+kv('Category',(CAT_ICON[t.category]||'')+' '+(t.category||'—'))+kv('Priority',t.urgency,t.urgency==='emergency'||t.urgency==='high'?'red':'green')):card('ℹ️ Work Order','<div style="color:var(--muted);font-size:12px">Ticket was escalated to human — no work order dispatched.</div>')}
+    ${prop.access_notes?card('📍 Property Access',`<div style="font-size:12px;line-height:1.7">${x(prop.access_notes)}</div>${prop.key_holder?`<div style="margin-top:8px">${kv('Key Holder',prop.key_holder)}</div>`:''}`): ''}
+    ${card('📝 Issue Report',`<div class="msg-box">${x(t.raw_text)}</div>${kv('Channel',t.channel)+kv('Received',ago(t.created_at))}`)}
+    ${p.vendor_message?card('📋 Full Work Order',`<div class="msg-box">${x(p.vendor_message)}</div>`,'full'):''}
   </div>`;
 }
 
-// ── Shell helper ──────────────────────────────────────────────────────────────
-function setDetailShell(id, txt, right) {
-  document.getElementById('detailPanel').innerHTML = `
-    <div class="detail-topbar">
-      <span class="d-id">${id}</span>
-      <span class="d-txt">${x(txt)}</span>
-      ${right||''}
-    </div>
+function setDetailShell(id,txt,right) {
+  document.getElementById('detailPanel').innerHTML=`
+    <div class="detail-topbar"><span class="d-id">${id}</span><span class="d-txt">${x(txt)}</span>${right||''}</div>
     <div class="detail-body" id="detail-body-inner"></div>`;
 }
 
-// ── Submit flow ───────────────────────────────────────────────────────────────
-function toggleForm() {
-  S.formOpen = !S.formOpen;
-  renderList();
-}
+function toggleRoleForm() { RS.formOpen=!RS.formOpen; renderList(); }
 
-function applyPreset(label) {
-  const p = PRESETS[label]; if (!p) return;
-  const ta = document.getElementById('f-txt');
-  const ch = document.getElementById('f-ch');
-  const se = document.getElementById('f-sent');
-  if (ta) ta.value = p.txt;
-  if (ch) ch.value = p.ch || 'chat';
-  if (se) se.value = p.s  || '';
+function applyRolePreset(label) {
+  const p=ROLE_PRESETS[label]; if (!p) return;
+  const ta=document.getElementById('f-txt'),ch=document.getElementById('f-ch'),se=document.getElementById('f-sent');
+  if (ta) ta.value=p.txt; if (ch) ch.value=p.ch||'chat'; if (se) se.value=p.s||'';
 }
 
 async function doSubmit() {
-  const txt = (document.getElementById('f-txt')?.value||'').trim();
-  if (!txt) return;
-  const rid = 'req-' + Date.now();
-  const body = {
-    request_id: rid, channel: document.getElementById('f-ch')?.value||'chat',
-    raw_text: txt, property_hint: 'The Delta Campus Berlin',
-  };
-  const s = document.getElementById('f-sent')?.value;
-  if (s) body.detected_sentiment = s;
-
-  const btn = document.getElementById('submitBtn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
+  const txt=(document.getElementById('f-txt')?.value||'').trim(); if (!txt) return;
+  const rid='req-'+Date.now();
+  const body={request_id:rid,channel:document.getElementById('f-ch')?.value||'chat',raw_text:txt,property_hint:'The Delta Campus Berlin'};
+  const s=document.getElementById('f-sent')?.value; if (s) body.detected_sentiment=s;
+  const btn=document.getElementById('submitBtn');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ Sending…'; }
   try {
-    await postRequest(body);
-    S.formOpen = false;
-    await loadTickets();
-    S.selected = rid;
-    renderList();
-    const t = S.tickets.find(t2 => t2.request_id === rid);
-    if (t) { const sd = await getTicketStatus(rid); renderDetail(t, sd); }
-  } catch (e) { alert('Submit failed: ' + e.message); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = '▶ Submit Request'; } }
+    await postRequest(body); RS.formOpen=false;
+    await loadTickets(); RS.selected=rid; renderList();
+    const t=RS.tickets.find(t2=>t2.request_id===rid);
+    if (t) { const sd=await getTicketStatus(rid); renderDetail(t,sd); }
+  } catch(e) { alert('Submit failed: '+e.message); }
+  finally { if (btn) { btn.disabled=false; btn.textContent='▶ Submit Request'; } }
 }
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
-function card(title, body, extra='') {
-  return `<div class="card ${extra}"><div class="card-title">${title}</div>${body}</div>`;
+function setFilter(f) { RS.filter=f; renderList(); }
+
+
+// ═══════════════════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════════════════
+let _currentView = 'manager';
+
+function setView(role) {
+  _currentView = role;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.toggle('active', t.dataset.role===role));
+  const isPipeline = role==='pipeline';
+  document.getElementById('rolesLayout').style.display = isPipeline ? 'none' : 'grid';
+  document.getElementById('pipeLayout').style.display  = isPipeline ? 'grid' : 'none';
+
+  if (!isPipeline) {
+    RS.role=role; RS.selected=null; RS.filter='all'; RS.formOpen=false;
+    renderList(); setDetailEmpty();
+  } else {
+    // Entering pipeline view — load BPMN and history if needed
+    loadHistory();
+    loadBpmn().then(() => { switchTab('bpmn'); updateBpmn(PS.steps, null); });
+  }
 }
-function kv(k, v, cls='') {
-  const val = (v==null||v===''||v==='—') ? '—' : x(String(v));
-  return `<div class="kv"><span class="kv-k">${k}</span><span class="kv-v ${cls}">${val}</span></div>`;
+
+
+// ═══════════════════════════════════════════════════════════
+// PIPELINE INSPECTOR STATE + LOGIC
+// ═══════════════════════════════════════════════════════════
+const STEP_DEFS = {
+  intake:{icon:'📥',title:'Intake',agent:'HTTP Router / FastAPI',type:'routing',
+    desc:'Receives the inbound request from the voice/channel layer. Validates the Pydantic schema and assigns a request_id for idempotent tracing.',
+    getInput:(req)=>({request_id:req.request_id,channel:req.channel,raw_text:req.raw_text,property_hint:req.property_hint||null}),
+    getOutput:(req,r)=>({status:'accepted',request_id:req.request_id})},
+  triage:{icon:'🔍',title:'Triage Agent',agent:'LlmTriageAgent (USE_LLM=1) · KeywordTriage (fallback)',type:'llm',
+    desc:'Dispatcher persona. Classifies issue category, urgency, and tenant sentiment using Claude via LiteLLM. Falls back to deterministic keyword heuristics when USE_LLM=0.',
+    getInput:(req)=>({raw_text:req.raw_text,detected_sentiment:req.detected_sentiment||null}),
+    getOutput:(req,r,pl)=>r?.diagnosis?{category:r.diagnosis.category,urgency:r.diagnosis.urgency,sentiment:r.diagnosis.sentiment,confidence:r.diagnosis.confidence}:(pl?{category:pl.category,urgency:pl.urgency,sentiment:pl.sentiment}:null)},
+  context:{icon:'🏠',title:'Property Context',agent:'PropertyMemoryLookup · ContextService (RAG-ready)',type:'retrieval',
+    desc:'Retrieves the property memory: manager contact, preferred vendors per category, approval threshold, access notes. Reads data/property_memory.json — designed to swap for RAG over OpenSearch.',
+    getInput:(req)=>({property_hint:req.property_hint||'(none — using _default)'}),
+    getOutput:(req,r,pl)=>{const p=r?.payload?.property||pl?.payload?.property;return p?{property_name:p.name,manager:p.manager,access_notes:p.access_notes?.slice(0,80)+'…'}:null;}},
+  vendor:{icon:'🔧',title:'Vendor Selector',agent:'VendorSelector (rule-based + rate table)',type:'rule',
+    desc:'Picks the preferred contractor for the issue category from the property\'s vendor map. Skipped for legal/financial categories.',
+    getInput:(req,r,pl)=>{const cat=r?.diagnosis?.category||pl?.category;return{category:cat||'(from triage)',property:req.property_hint||null};},
+    getOutput:(req,r,pl)=>{const vp=r?.vendor_plan||pl?.payload?.vendor;return vp?{vendor_id:vp.vendor_id,vendor_name:vp.vendor_name,proposed_window:vp.proposed_window,estimated_cost_eur:vp.estimated_cost_eur}:{skipped:true,reason:'Category does not require vendor dispatch'};}},
+  risk_gate:{icon:'🛡️',title:'Risk Gate',agent:'RiskGate (deterministic policy — no LLM)',type:'policy',
+    desc:'Applies the property risk policy. Always escalates for: legal, financial, angry/frustrated sentiment, or cost over approval_threshold_eur. 100% deterministic — the critical business rule.',
+    getInput:(req,r,pl)=>{const cat=r?.diagnosis?.category||pl?.category,sent=r?.diagnosis?.sentiment||pl?.sentiment,vp=r?.vendor_plan||pl?.payload?.vendor;return{category:cat,sentiment:sent,estimated_cost_eur:vp?.estimated_cost_eur??null};},
+    getOutput:(req,r,pl)=>{const dec=r?.decision||pl?.decision,esc=r?.escalation_reason||pl?.payload?.escalation_reason,cat=r?.diagnosis?.category||pl?.category,sent=r?.diagnosis?.sentiment||pl?.sentiment;return{decision:dec,escalation_reason:esc||null,rules_checked:{legal_topic:cat==='legal',financial_topic:cat==='financial',angry_sentiment:sent==='angry'||sent==='frustrated'}};}},
+  comms:{icon:'✉️',title:'Comms Agent',agent:'LlmCommsAgent (USE_LLM=1) · TemplateComms (fallback)',type:'llm',
+    desc:'Drafts the tenant acknowledgement and vendor work order. Uses Claude via LiteLLM for polished language. Deterministic templates as fallback.',
+    getInput:(req,r,pl)=>{const vp=r?.vendor_plan||pl?.payload?.vendor,dec=r?.decision||pl?.decision;return{category:r?.diagnosis?.category||pl?.category,urgency:r?.diagnosis?.urgency||pl?.urgency,escalated:dec==='escalate_human',vendor_name:vp?.vendor_name||null};},
+    getOutput:(req,r,pl)=>{const tm=r?.tenant_message||pl?.payload?.tenant_message,vm=r?.vendor_message||pl?.payload?.vendor_message;return tm||vm?{tenant_message:tm?clip(tm,140):null,vendor_message:vm?clip(vm,140):null}:null;}},
+  closed:{icon:'✅',title:'Closed',agent:'Repository (SQLite — swap for Cloud SQL)',type:'persistence',
+    desc:'Persists the completed ticket to SQLite with all fields. Also publishes StatusEvent to the in-memory event bus so SSE subscribers receive the final closed signal.',
+    getInput:(req,r,pl)=>({request_id:req.request_id,decision:r?.decision||pl?.decision}),
+    getOutput:()=>({stored:true,event_bus:'published'})},
+};
+const STEP_ORDER=['intake','triage','context','vendor','risk_gate','comms','closed'];
+
+const PIPE_SCENARIOS = [
+  {label:'🥶 Cold coworking',ch:'chat',txt:'The open-plan coworking area on the 3rd floor has been cold all morning. The radiators are not heating up and people are working in their coats.'},
+  {label:'🚿 Sink blocked',  ch:'sms', txt:'The shared kitchen sink on the 4th floor is completely blocked — water is backing up onto the counter.'},
+  {label:'💡 AV failure',    ch:'phone',txt:'The AV system and overhead lights in the 3rd floor meeting room stopped working 20 min before a client presentation.'},
+  {label:'🔑 Locked out',    ch:'chat',txt:'My transponder card stopped working and I cannot get into the building.'},
+  {label:'😡 Gym rage',      ch:'phone',s:'angry',txt:'The gym AC is not cooling. I reported this THREE times already!!! Completely unacceptable!!!'},
+  {label:'🚨 Lift stuck',    ch:'phone',txt:'The middle lift stopped between floors 2 and 3 with someone inside. Alarm pressed. Help NOW.'},
+  {label:'💶 Event cold',    ch:'email',txt:'The event space on the 4th floor is too cold for our workshop. 40 guests in 2 hours.'},
+  {label:'⚖️ Legal question',ch:'email',txt:'The event space causes serious noise disturbance every evening. I want to understand my rights.'},
+];
+
+let PS = {
+  request:null, response:null, ticket:null, steps:{}, selected:null,
+  history:[], sse:null, timerStart:null, timerIv:null,
+};
+
+// Init pipeline
+document.getElementById('presetGrid').innerHTML = PIPE_SCENARIOS.map((p,i) =>
+  `<div class="preset" onclick="applyPipePreset(${i})">${p.label}</div>`).join('');
+
+const _initSteps={};
+STEP_ORDER.forEach(id=>_initSteps[id]={status:'pending'});
+renderPipelineStrip(_initSteps);
+
+function applyPipePreset(i) {
+  const p=PIPE_SCENARIOS[i];
+  document.getElementById('rawText').value=p.txt;
+  document.getElementById('channel').value=p.ch||'chat';
+  document.getElementById('sentiment').value=p.s||'';
 }
-function rule(label, hit) {
-  return `<div class="rule-row ${hit?'hit':'miss'}"><span>${hit?'✕':'○'}</span><span>${label}</span></div>`;
+
+async function run() {
+  const txt=document.getElementById('rawText').value.trim();
+  if (!txt) { alert('Enter a message first.'); return; }
+  const rid='vis-'+Date.now();
+  const reqBody={request_id:rid,channel:document.getElementById('channel').value,raw_text:txt,property_hint:document.getElementById('propertyHint').value.trim()||undefined};
+  const s=document.getElementById('sentiment').value; if (s) reqBody.detected_sentiment=s;
+  PS={...PS,request:reqBody,response:null,ticket:null,steps:{},selected:null,timerStart:Date.now()};
+  STEP_ORDER.forEach(id=>PS.steps[id]={status:'pending'});
+  setRunState('running','');
+  startTimer(); renderStepList(); renderPipelineStrip(PS.steps);
+  switchTab('bpmn'); _setBpmnBanner('','idle');
+  setInspEmpty('Pipeline running — steps will appear as each agent fires');
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true; btn.textContent='⏳ Running…';
+  openSSE(rid);
+  try {
+    const resp=await fetch('/api/requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reqBody)});
+    PS.response=await resp.json();
+    const isEsc=PS.response.decision==='escalate_human';
+    setRunState(isEsc?'escalated':'done',isEsc?'🚨 Escalated to Human':'✅ Auto-resolved');
+    _setBpmnBanner('closed',isEsc?'escalated':'done');
+    stopTimer();
+    renderStepList(); renderPipelineStrip(PS.steps,PS.response);
+    updateBpmn(PS.steps,PS.response.decision);
+    if (PS.selected) renderInspector(PS.selected);
+    PS.history.unshift({id:rid,txt,ch:reqBody.channel,decision:PS.response.decision});
+    renderHistory();
+    setTimeout(()=>closeSSE(),2000);
+  } catch(e) { setRunState('idle','❌ '+e.message); stopTimer(); closeSSE(); }
+  finally { btn.disabled=false; btn.textContent='▶ Run Pipeline'; }
 }
-function x(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function openSSE(rid) {
+  closeSSE();
+  const es=new EventSource('/events/stream/'+rid);
+  es.onmessage=e=>{try{onEvent(JSON.parse(e.data));}catch{}};
+  es.onerror=()=>{}; PS.sse=es;
 }
+function closeSSE() { if (PS.sse) { PS.sse.close(); PS.sse=null; } }
+
+function onEvent(ev) {
+  const st=PS.steps[ev.node]||{status:'pending'};
+  if (ev.status==='started') PS.steps[ev.node]={status:'running',startAt:ev.at,detail:''};
+  else if (ev.status==='done') { const dur=st.startAt?((new Date(ev.at)-new Date(st.startAt))/1000):null; PS.steps[ev.node]={status:'done',detail:ev.detail,startAt:st.startAt,endAt:ev.at,dur}; }
+  else if (ev.status==='skipped') PS.steps[ev.node]={status:'skipped',detail:ev.detail,endAt:ev.at};
+  renderStepList(); renderPipelineStrip(PS.steps,PS.response);
+  updateBpmn(PS.steps,PS.response?.decision);
+  _setBpmnBanner(ev.node,ev.status==='started'?'running':(ev.status==='done'?'done':ev.status));
+  if (ev.status==='started') selectStep(ev.node);
+  else if (ev.status==='done'&&PS.selected===ev.node) renderInspector(ev.node);
+}
+
+async function loadHistory() {
+  try {
+    const data=await(await fetch('/api/requests?limit=12')).json();
+    const tickets=data.tickets||[];
+    if (tickets.length) { PS.history=tickets.map(t=>({id:t.request_id,txt:t.raw_text,ch:t.channel,decision:t.decision})); renderHistory(); }
+  } catch {}
+}
+
+function renderHistory() {
+  const el=document.getElementById('histList');
+  if (!PS.history.length) { el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">No requests yet</div>'; return; }
+  el.innerHTML=PS.history.slice(0,12).map(h => {
+    const isEsc=h.decision==='escalate_human',auto=h.decision==='auto_resolve';
+    return `<div class="hist-item ${PS.request?.request_id===h.id?'active':''}" onclick="loadTicketPipe('${h.id}')">
+      <div class="hi-id">${h.id}</div><div class="hi-txt">${escHtml(h.txt)}</div>
+      <div class="hi-meta"><span class="bdg ${isEsc?'bdg-esc':auto?'bdg-auto':'bdg-pend'}">${isEsc?'Escalated':auto?'Resolved':'Pending'}</span><span style="font-size:10px;color:var(--muted)">${h.ch}</span></div>
+    </div>`;
+  }).join('');
+}
+
+async function loadTicketPipe(rid) {
+  try {
+    const se=await(await fetch('/api/requests/'+rid+'/status')).json();
+    const list=await(await fetch('/api/requests?limit=50')).json();
+    const t=(list.tickets||[]).find(t=>t.request_id===rid);
+    PS.request={request_id:rid,channel:t?.channel||'?',raw_text:t?.raw_text||'',property_hint:t?.payload?.property?.name||''};
+    PS.response=null; PS.ticket=t||null; PS.steps={};
+    STEP_ORDER.forEach(id=>PS.steps[id]={status:'pending'});
+    const timings={};
+    for (const ev of se.events||[]) {
+      const cur=PS.steps[ev.node]||{};
+      if (ev.status==='started') { PS.steps[ev.node]={status:'running',startAt:ev.at,detail:''}; timings[ev.node]=ev.at; }
+      else if (ev.status==='done') { const dur=timings[ev.node]?((new Date(ev.at)-new Date(timings[ev.node]))/1000):null; PS.steps[ev.node]={status:'done',detail:ev.detail,startAt:timings[ev.node],endAt:ev.at,dur}; }
+      else if (ev.status==='skipped') PS.steps[ev.node]={status:'skipped',detail:ev.detail,endAt:ev.at};
+    }
+    const dec=t?.decision||'auto_resolve';
+    setRunState(dec==='escalate_human'?'escalated':'done',dec==='escalate_human'?'🚨 Escalated to Human':'✅ Auto-resolved');
+    const events=se.events||[];
+    if (events.length>=2) { const f=events[0],l=events[events.length-1]; document.getElementById('traceSummary').textContent=((new Date(l.at)-new Date(f.at))/1000).toFixed(1)+'s total'; }
+    renderStepList(); renderPipelineStrip(PS.steps,null);
+    updateBpmn(PS.steps,dec); switchTab('bpmn');
+    _setBpmnBanner('closed',dec==='escalate_human'?'escalated':'done');
+    selectStep('closed');
+  } catch(e){console.warn(e);}
+}
+
+function renderPipelineStrip(steps,resp) {
+  const isEsc=resp?.decision==='escalate_human';
+  const el=document.getElementById('pipelineStrip');
+  let html='';
+  STEP_ORDER.forEach((id,i)=>{
+    const def=STEP_DEFS[id],st=steps[id]?.status||'pending';
+    const esc=st==='done'&&id==='risk_gate'&&isEsc;
+    const dotClass=esc?'escalated':st,sel=PS.selected===id?'selected':'';
+    html+=`<div class="ps-node"><div class="ps-dot ${dotClass} ${sel}" onclick="selectStep('${id}')" title="${def.title}">${def.icon}</div><div class="ps-lbl">${def.title.split(' ')[0]}</div></div>`;
+    if (i<STEP_ORDER.length-1) { const nextDone=['done','escalated'].includes(steps[STEP_ORDER[i+1]]?.status||''); const cls=nextDone?(isEsc&&i>=3?'esc':'lit'):''; html+=`<div class="ps-arr ${cls}">›</div>`; }
+  });
+  el.innerHTML=html;
+}
+
+function renderStepList() {
+  const dones=STEP_ORDER.map(id=>PS.steps[id]).filter(s=>s?.endAt).map(s=>new Date(s.endAt));
+  const starts=STEP_ORDER.map(id=>PS.steps[id]).filter(s=>s?.startAt).map(s=>new Date(s.startAt));
+  if (dones.length>1&&starts.length>0) document.getElementById('traceSummary').textContent=((Math.max(...dones)-Math.min(...starts))/1000).toFixed(1)+'s total';
+  const el=document.getElementById('stepList');
+  el.innerHTML=STEP_ORDER.map(id=>{
+    const def=STEP_DEFS[id],st=PS.steps[id]||{status:'pending'},sel=PS.selected===id;
+    const dotChar=st.status==='done'?'✓':st.status==='escalated'?'✕':st.status==='skipped'?'—':st.status==='running'?'…':'○';
+    const isEscStep=st.status==='done'&&id==='risk_gate'&&PS.response?.decision==='escalate_human';
+    const dotClass=isEscStep?'escalated':st.status;
+    const durTxt=st.dur!=null?(st.dur>=1?st.dur.toFixed(1)+'s':Math.round(st.dur*1000)+'ms'):'';
+    const durClass=st.dur>1.5?'slow':st.dur>0?'fast':'';
+    return `<div class="step-item ${sel?'selected':''}" onclick="selectStep('${id}')">
+      <div class="p-step-dot ${dotClass}">${dotChar}</div>
+      <div class="step-dur ${durClass}">${durTxt}</div>
+      <div class="step-name">${def.icon} ${def.title}</div>
+      <div class="step-sub">${def.agent}</div>
+      ${st.detail?`<div class="step-detail-txt">${escHtml(st.detail)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function selectStep(id) { PS.selected=id; renderStepList(); renderPipelineStrip(PS.steps,PS.response); renderInspector(id); }
+
+function renderInspector(id) {
+  const def=STEP_DEFS[id],st=PS.steps[id]||{status:'pending'};
+  const req=PS.request||{request_id:'—',channel:'—',raw_text:'—'};
+  const resp=PS.response,tick=PS.ticket;
+  const isRunning=st.status==='running',isDone=st.status==='done'||st.status==='skipped',isPending=st.status==='pending';
+  const isEscStep=id==='risk_gate'&&(resp?.decision==='escalate_human'||tick?.decision==='escalate_human');
+  const sbClass=isRunning?'sb-running':isDone?(isEscStep?'sb-escalated':'sb-done'):'sb-pending';
+  const sbLabel=isRunning?'⟳ Running':isDone?(isEscStep?'✕ Escalated':'✓ Done'):'○ Pending';
+  const durTxt=st.dur!=null?(st.dur>=1?st.dur.toFixed(2)+'s':Math.round(st.dur*1000)+'ms'):'';
+  let inputData=null,outputData=null;
+  try{inputData=def.getInput(req,resp,tick);}catch{}
+  try{outputData=isDone?def.getOutput(req,resp,tick):null;}catch{}
+  document.getElementById('details-panel').innerHTML=`
+    <div class="insp-hdr">
+      <div class="insp-icon">${def.icon}</div>
+      <div class="insp-desc">
+        <div class="insp-title">${def.title}${durTxt?` <span style="font-size:11px;font-weight:400;color:var(--muted)">— ${durTxt}</span>`:''}</div>
+        <div class="insp-agent">${def.agent}</div>
+        <div class="insp-badges"><span class="type-badge type-${def.type}">${def.type.replace('_',' ')}</span><span class="status-badge ${sbClass}">${sbLabel}</span></div>
+      </div>
+    </div>
+    <div class="insp-body" id="insp-body"></div>`;
+  renderPipelineStrip(PS.steps,PS.response);
+  updateBpmn(PS.steps,resp?.decision||tick?.decision);
+  const body=document.getElementById('insp-body');
+  let html=`<div class="desc-box">${escHtml(def.desc)}</div>`;
+  if (isEscStep&&isDone) { const reason=resp?.escalation_reason||tick?.payload?.escalation_reason; html+=`<div class="esc-flash"><strong>🚨 Escalation triggered</strong>${escHtml(reason||'Manual review required.')}</div>`; }
+  html+=`<div class="io-section"><div class="io-label">Input</div>${inputData?jsonBlock(inputData):'<div class="io-waiting">Waiting for request data…</div>'}</div>`;
+  html+=`<div class="io-section"><div class="io-label">Output</div>`;
+  if (isRunning) html+='<div class="io-waiting">Agent is processing…</div>';
+  else if (isPending) html+='<div class="io-waiting" style="--amber:#f59e0b">⬜ This step has not run yet</div>';
+  else if (outputData) html+=jsonBlock(outputData);
+  else if (st.detail) html+=jsonBlock({detail:st.detail});
+  else html+='<div class="io-waiting">Output available after step completes</div>';
+  html+='</div>';
+  if (id==='comms'&&isDone) {
+    const tm=resp?.tenant_message||tick?.payload?.tenant_message,vm=resp?.vendor_message||tick?.payload?.vendor_message;
+    if (tm) html+=msgBlock('Tenant Message (full)',tm);
+    if (vm) html+=msgBlock('Vendor Work Order (full)',vm);
+  }
+  body.innerHTML=html;
+}
+
+function setInspEmpty(msg) {
+  document.getElementById('details-panel').innerHTML=`<div class="insp-body"><div class="insp-empty"><div class="insp-empty-icon">⏳</div><div style="font-size:13px">${escHtml(msg)}</div></div></div>`;
+}
+
+// ─ Timer ─
+function startTimer() {
+  PS.timerStart=Date.now();
+  if (PS.timerIv) clearInterval(PS.timerIv);
+  PS.timerIv=setInterval(()=>{ document.getElementById('runTimer').textContent=((Date.now()-PS.timerStart)/1000).toFixed(1)+'s'; },100);
+}
+function stopTimer() { if (PS.timerIv) { clearInterval(PS.timerIv); PS.timerIv=null; } }
+function setRunState(cls,msg) {
+  const el=document.getElementById('runState');
+  el.className='run-state '+cls;
+  el.textContent=msg||(cls==='idle'?'Ready':cls);
+}
+
+// ─ JSON pretty printer ─
+function jsonBlock(obj) { const lines=fmtJSON(obj),shown=lines.slice(0,40),extra=lines.length>40; return `<div class="json-block">${shown.join('\n')}${extra?'\n<span class="json-trunc">… '+(lines.length-40)+' more lines</span>':''}</div>`; }
+function fmtJSON(obj,indent=0) {
+  const pad='  '.repeat(indent);
+  if (obj===null) return [pad+'<span class="json-null">null</span>'];
+  if (obj===true) return [pad+'<span class="json-bool">true</span>'];
+  if (obj===false) return [pad+'<span class="json-bool">false</span>'];
+  if (typeof obj==='number') return [pad+`<span class="json-num">${obj}</span>`];
+  if (typeof obj==='string') return [pad+`<span class="json-str">"${escHtml(obj)}"</span>`];
+  if (Array.isArray(obj)) { if (!obj.length) return [pad+'[]']; const items=obj.flatMap(v=>fmtJSON(v,indent+1).map(l=>l+',')); return [pad+'[',...items,pad+']']; }
+  if (typeof obj==='object') { const keys=Object.keys(obj); if (!keys.length) return [pad+'{}']; const lines=[pad+'{']; keys.forEach((k,i)=>{ const vLines=fmtJSON(obj[k],indent+1); vLines[0]=`${pad}  <span class="json-key">"${escHtml(k)}"</span>: ${vLines[0].trimStart()}`; if (i<keys.length-1) vLines[vLines.length-1]+=','; lines.push(...vLines); }); lines.push(pad+'}'); return lines; }
+  return [pad+String(obj)];
+}
+function msgBlock(title,txt) { return `<div class="io-section"><div class="io-label">${escHtml(title)}</div><div class="json-block" style="line-height:1.8;font-family:inherit;white-space:pre-wrap">${escHtml(txt)}</div></div>`; }
+
+// ─ BPMN ─
+const BPMN_NODE_MAP = {
+  intake:{nodes:[{t:'circle',cx:68,cy:150,r:14},{t:'rect',x:106,y:122,w:120,h:56}]},
+  triage:{nodes:[{t:'rect',x:106,y:290,w:120,h:56},{t:'polygon',pts:'246,348 270,318 294,348 270,378'}]},
+  context:{nodes:[]},
+  vendor:{nodes:[{t:'rect',x:390,y:290,w:120,h:56},{t:'rect',x:390,y:600,w:120,h:56}]},
+  risk_gate:{nodes:[{t:'polygon',pts:'246,348 270,318 294,348 270,378'},{t:'polygon',pts:'336,318 360,288 384,318 360,348'}],nodes_esc:[{t:'polygon',pts:'246,348 270,318 294,348 270,378'},{t:'rect',x:230,y:408,w:120,h:56}]},
+  comms:{nodes:[{t:'rect',x:390,y:680,w:120,h:56},{t:'rect',x:370,y:122,w:120,h:56}]},
+  closed:{nodes:[{t:'rect',x:250,y:680,w:120,h:56},{t:'polygon',pts:'156,728 180,698 204,728 180,758'},{t:'rect',x:530,y:680,w:120,h:56},{t:'rect',x:390,y:430,w:120,h:56},{t:'rect',x:530,y:290,w:120,h:56},{t:'rect',x:510,y:122,w:120,h:56},{t:'circle',cx:652,cy:150,r:14}],nodes_esc:[{t:'rect',x:530,y:290,w:120,h:56}]},
+};
+
+function switchTab(name) {
+  document.getElementById('tab-details').classList.toggle('active',name==='details');
+  document.getElementById('tab-bpmn').classList.toggle('active',name==='bpmn');
+  document.getElementById('details-panel').style.display=name==='details'?'flex':'none';
+  document.getElementById('bpmn-panel').style.display=name==='bpmn'?'flex':'none';
+  if (name==='bpmn') loadBpmn().then(()=>updateBpmn(PS.steps,PS.response?.decision||PS.ticket?.decision));
+}
+
+let _bpmnLoaded=false;
+async function loadBpmn() {
+  if (_bpmnLoaded) return;
+  const wrap=document.getElementById('bpmn-svg-wrap'); if (!wrap) return;
+  wrap.innerHTML='<div style="padding:24px;color:var(--muted);font-size:12px">Loading diagram…</div>';
+  try { const text=await(await fetch('/static/property_repair_bpmn.svg')).text(); wrap.innerHTML=text; _bpmnLoaded=true; }
+  catch(e) { wrap.innerHTML=`<div style="padding:20px;color:var(--red);font-size:12px">Could not load BPMN: ${escHtml(String(e))}</div>`; }
+}
+
+function updateBpmn(steps,decision) {
+  const hl=document.getElementById('bpmn-hl'); if (!hl) return;
+  hl.innerHTML=''; const isEsc=decision==='escalate_human',ns='http://www.w3.org/2000/svg';
+  for (const stepId of STEP_ORDER) {
+    const st=steps?.[stepId]; if (!st||st.status==='pending') continue;
+    const map=BPMN_NODE_MAP[stepId]; if (!map) continue;
+    const escDone=isEsc&&st.status==='done';
+    const nodes=(stepId==='risk_gate'||stepId==='closed')&&escDone&&map.nodes_esc?map.nodes_esc:map.nodes;
+    const effectiveStatus=(stepId==='risk_gate'&&escDone)?'escalated':st.status;
+    for (const node of nodes) hl.appendChild(makeBpmnOverlay(node,effectiveStatus,ns));
+  }
+}
+
+function _setBpmnBanner(stepId,status) {
+  const el=document.getElementById('bpmn-step-pill'); if (!el) return;
+  if (!stepId||status==='idle') { el.className=''; el.textContent='Pipeline starting…'; return; }
+  const def=STEP_DEFS[stepId]||{icon:'',title:stepId};
+  const labels={running:`⟳  ${def.icon} ${def.title} — running`,done:`✓  ${def.icon} ${def.title} — done`,escalated:`✕  ${def.icon} ${def.title} — escalated`,skipped:`—  ${def.icon} ${def.title} — skipped`};
+  el.className=status==='running'?'running':status==='escalated'?'escalated':'done';
+  el.textContent=labels[status]||def.title;
+}
+
+function makeBpmnOverlay(node,status,ns) {
+  const cols={running:{fill:'rgba(245,158,11,.32)',stroke:'#f59e0b',sw:4,anim:true},done:{fill:'rgba(16,185,129,.25)',stroke:'#10b981',sw:3.5,anim:false},escalated:{fill:'rgba(239,68,68,.28)',stroke:'#ef4444',sw:3.5,anim:false},skipped:{fill:'rgba(100,100,100,.12)',stroke:'#6b7280',sw:2,anim:false}};
+  const c=cols[status]||cols.done; let el;
+  if (node.t==='rect') { el=document.createElementNS(ns,'rect'); el.setAttribute('x',node.x); el.setAttribute('y',node.y); el.setAttribute('width',node.w); el.setAttribute('height',node.h); el.setAttribute('rx',6); }
+  else if (node.t==='circle') { el=document.createElementNS(ns,'circle'); el.setAttribute('cx',node.cx); el.setAttribute('cy',node.cy); el.setAttribute('r',node.r+2); }
+  else { el=document.createElementNS(ns,'polygon'); el.setAttribute('points',node.pts); }
+  el.setAttribute('fill',c.fill); el.setAttribute('stroke',c.stroke); el.setAttribute('stroke-width',c.sw);
+  el.style.pointerEvents='none';
+  if (c.anim) el.style.animation='bpmn-pulse 1s ease-in-out infinite';
+  return el;
+}
+
+// ─ Voice recorder ─
+const REC={mediaRecorder:null,chunks:[],stream:null,audioCtx:null,analyser:null,animId:null,timerIv:null,timerSecs:0};
+
+async function toggleRecording() { if (REC.mediaRecorder&&REC.mediaRecorder.state==='recording') _recStop(); else await _recStart(); }
+
+async function _recStart() {
+  try { REC.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
+  catch(e) { alert('Microphone access denied: '+e.message); return; }
+  REC.chunks=[];
+  const preferred=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4'];
+  const mimeType=preferred.find(t=>MediaRecorder.isTypeSupported(t))||'';
+  REC.mediaRecorder=new MediaRecorder(REC.stream,mimeType?{mimeType}:{});
+  REC.mediaRecorder.ondataavailable=e=>{if(e.data.size>0)REC.chunks.push(e.data);};
+  REC.mediaRecorder.onstop=_recOnStop; REC.mediaRecorder.start(100);
+  REC.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const source=REC.audioCtx.createMediaStreamSource(REC.stream);
+  REC.analyser=REC.audioCtx.createAnalyser(); REC.analyser.fftSize=128;
+  source.connect(REC.analyser); _recDrawWave();
+  REC.timerSecs=0; _recTickTimer();
+  REC.timerIv=setInterval(()=>{REC.timerSecs++;_recTickTimer();if(REC.timerSecs>=120)_recStop();},1000);
+  document.getElementById('recBtn').className='rec-btn recording'; document.getElementById('recBtn').textContent='⏹';
+  document.getElementById('waveWrap').classList.add('active');
+  document.getElementById('recHint').textContent='Recording… click ⏹ again to stop';
+  document.getElementById('recTranscript').classList.remove('show');
+  document.getElementById('waveTimer').className='wave-timer';
+}
+
+function _recStop() {
+  if (REC.mediaRecorder&&REC.mediaRecorder.state!=='inactive') REC.mediaRecorder.stop();
+  if (REC.stream) REC.stream.getTracks().forEach(t=>t.stop());
+  if (REC.timerIv) { clearInterval(REC.timerIv); REC.timerIv=null; }
+  if (REC.animId) { cancelAnimationFrame(REC.animId); REC.animId=null; }
+  document.getElementById('recBtn').className='rec-btn processing'; document.getElementById('recBtn').textContent='⏳';
+  document.getElementById('recHint').textContent='Transcribing with ElevenLabs…';
+  document.getElementById('waveTimer').className='wave-timer processing';
+}
+
+async function _recOnStop() {
+  const mimeType=REC.mediaRecorder?.mimeType||'audio/webm',ext=mimeType.includes('ogg')?'ogg':mimeType.includes('mp4')?'m4a':'webm';
+  const blob=new Blob(REC.chunks,{type:mimeType}),filename=`recording-${Date.now()}.${ext}`;
+  const property=document.getElementById('propertyHint').value.trim(),channel=document.getElementById('channel').value||'phone',rid='rec-'+Date.now();
+  const form=new FormData(); form.append('file',blob,filename); form.append('channel',channel);
+  if (property) form.append('property_hint',property); form.append('language_code','de'); form.append('request_id',rid);
+  document.getElementById('recHint').textContent=`Sending ${(blob.size/1024).toFixed(0)} KB to ElevenLabs STT…`;
+  try {
+    const resp=await fetch('/api/transcribe/file',{method:'POST',body:form});
+    if (!resp.ok) { const err=await resp.json().catch(()=>({detail:resp.statusText})); throw new Error(err.detail||resp.statusText); }
+    _recOnResult(await resp.json(),rid);
+  } catch(e) { _recReset(); setRunState('idle','❌ STT error: '+e.message); }
+}
+
+function _recOnResult(result,rid) {
+  const raw=result.trace?.[0]?.replace(/^Intake via \w+:\s*/,'')||result.raw_text||'';
+  document.getElementById('rawText').value=raw;
+  document.getElementById('recTranscriptText').textContent=raw?raw.slice(0,200)+(raw.length>200?'…':''):'(no transcript)';
+  document.getElementById('recTranscript').classList.add('show');
+  const isEsc=result.decision==='escalate_human';
+  PS.request={request_id:rid,channel:document.getElementById('channel').value,raw_text:raw,property_hint:document.getElementById('propertyHint').value};
+  PS.response=result; PS.ticket=null;
+  STEP_ORDER.forEach(id=>{PS.steps[id]={status:id==='risk_gate'&&isEsc?'escalated':'done',detail:''};});
+  (result.trace||[]).forEach((detail,i)=>{const id=STEP_ORDER[i];if(id)PS.steps[id].detail=detail;});
+  PS.history.unshift({id:rid,txt:raw,ch:document.getElementById('channel').value,decision:result.decision});
+  setRunState(isEsc?'escalated':'done',isEsc?'🚨 Escalated':'✅ Auto-resolved');
+  renderStepList(); renderPipelineStrip(PS.steps,result); updateBpmn(PS.steps,result.decision); renderHistory(); selectStep('comms');
+  _recReset(); document.getElementById('recHint').textContent=`✅ Done · €${result.vendor_plan?.estimated_cost_eur??'—'}`;
+}
+
+function _recReset() { document.getElementById('recBtn').className='rec-btn'; document.getElementById('recBtn').textContent='🎤'; document.getElementById('waveWrap').classList.remove('active'); REC.mediaRecorder=null; REC.stream=null; }
+function _recTickTimer() { const m=Math.floor(REC.timerSecs/60),s=String(REC.timerSecs%60).padStart(2,'0'); document.getElementById('waveTimer').textContent=m+':'+s; }
+function _recDrawWave() {
+  if (!REC.analyser) return; REC.animId=requestAnimationFrame(_recDrawWave);
+  const canvas=document.getElementById('waveCanvas'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
+  const bufLen=REC.analyser.frequencyBinCount,data=new Uint8Array(bufLen);
+  REC.analyser.getByteTimeDomainData(data); ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#ef4444'; ctx.lineWidth=1.5; ctx.beginPath();
+  const step=W/bufLen;
+  for (let i=0;i<bufLen;i++) { const y=(data[i]/128)*(H/2); i===0?ctx.moveTo(0,y):ctx.lineTo(i*step,y); }
+  ctx.stroke();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SHARED HELPERS
+// ═══════════════════════════════════════════════════════════
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function x(s) { return escHtml(s); }
+function clip(s,n) { return s.length>n?s.slice(0,n)+'…':s; }
 function ago(s) {
   if (!s) return '—';
-  try {
-    const d = new Date(s), now = new Date(), diff = now - d;
-    if (diff < 60000) return 'just now';
-    if (diff < 3600000) return Math.floor(diff/60000)+'m ago';
-    if (diff < 86400000) return Math.floor(diff/3600000)+'h ago';
-    return d.toLocaleDateString();
-  } catch { return s; }
+  try { const d=new Date(s),now=new Date(),diff=now-d; if (diff<60000) return 'just now'; if (diff<3600000) return Math.floor(diff/60000)+'m ago'; if (diff<86400000) return Math.floor(diff/3600000)+'h ago'; return d.toLocaleDateString(); } catch { return s; }
 }
-function setFilter(f) { S.filter = f; renderList(); }
-function updateStatus(ok) {
-  const dot = document.getElementById('apiDot');
-  const lbl = document.getElementById('apiLbl');
-  if (dot) dot.style.background = ok ? 'var(--green)' : 'var(--red)';
-  if (lbl) lbl.textContent = ok ? 'API online' : 'API offline';
+function card(title,body,extra='') { return `<div class="card ${extra}"><div class="card-title">${title}</div>${body}</div>`; }
+function kv(k,v,cls='') { const val=(v==null||v===''||v==='—')?'—':x(String(v)); return `<div class="kv"><span class="kv-k">${k}</span><span class="kv-v ${cls}">${val}</span></div>`; }
+function rule(label,hit) { return `<div class="rule-row ${hit?'hit':'miss'}"><span>${hit?'✕':'○'}</span><span>${label}</span></div>`; }
+function updateApiStatus(ok) {
+  document.getElementById('apiDot').style.background=ok?'var(--green)':'var(--red)';
+  document.getElementById('apiLbl').textContent=ok?'API online':'API offline';
 }
 
 async function refresh() {
   await loadTickets();
-  if (S.selected) {
-    const t = S.tickets.find(t2 => t2.request_id === S.selected);
-    if (t) { const sd = await getTicketStatus(S.selected); renderDetail(t, sd); }
+  if (_currentView!=='pipeline'&&RS.selected) {
+    const t=RS.tickets.find(t2=>t2.request_id===RS.selected);
+    if (t) { const sd=await getTicketStatus(RS.selected); renderDetail(t,sd); }
   }
+  if (_currentView==='pipeline') await loadHistory();
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-setRole('manager');
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+setView('manager');
 loadTickets();
-setInterval(loadTickets, 15000);
+setInterval(loadTickets, 20000);
+setInterval(()=>fetch('/health').then(()=>updateApiStatus(true)).catch(()=>updateApiStatus(false)), 30000);
 </script>
 </body>
 </html>
