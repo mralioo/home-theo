@@ -8,25 +8,47 @@ Endpoints:
   GET  /health                   -> liveness for Cloud Run
   GET  /dashboard                -> pipeline visualizer UI
 """
+
 from __future__ import annotations
 
+import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.agents.coordinator import handle_request
+from app.core import event_bus
 from app.core.repository import events_for, init_db
 from app.core.schemas import InboundRequest, OrchestratorResponse
+from app.routes import actions as actions_route
+from app.routes import elevenlabs as elevenlabs_route
+from app.routes import events as events_route
 
-app = FastAPI(title="Autonomous Ops Orchestrator", version="0.1.0")
+_STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 _DASHBOARD = Path(__file__).parent / "static" / "dashboard.html"
 
 
-@app.on_event("startup")
-def _startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     init_db()
+    event_bus.attach_loop(asyncio.get_running_loop())
+    yield
+
+
+app = FastAPI(
+    title="Autonomous Ops Orchestrator",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.include_router(events_route.router)
+app.include_router(elevenlabs_route.router)
+app.include_router(actions_route.router)
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 
 @app.get("/health")

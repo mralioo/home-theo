@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Ops Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+  <header class="topbar">
+    <strong>Autonomous Ops</strong>
+    <span id="rid-label" class="muted">no request</span>
+    <button id="reset" class="secondary outline">Reset</button>
+  </header>
+  <main class="grid-main">
+    <section id="canvas"></section>
+    <aside id="side">
+      <article id="ticket-card"><em>Waiting for a request…</em></article>
+      <article>
+        <header>Event log</header>
+        <ul id="event-log"></ul>
+      </article>
+    </aside>
+  </main>
+  <script src="https://unpkg.com/bpmn-js@18/dist/bpmn-navigated-viewer.production.min.js"></script>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

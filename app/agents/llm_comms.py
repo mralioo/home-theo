@@ -3,6 +3,7 @@ LLM-backed message polishing using ADK + Claude. Optional (USE_LLM=1).
 Rewrites the template messages into a warm, on-brand German-property-manager
 voice without changing any facts.
 """
+
 from __future__ import annotations
 
 import json
@@ -30,16 +31,10 @@ _comms_agent = LlmAgent(
 
 def polish_llm(messages: dict[str, str]) -> dict[str, str]:
     runner = InMemoryRunner(agent=_comms_agent, app_name="ops")
-    session = runner.session_service.create_session_sync(
-        app_name="ops", user_id="system"
-    )
-    content = types.Content(
-        role="user", parts=[types.Part(text=json.dumps(messages))]
-    )
+    session = runner.session_service.create_session_sync(app_name="ops", user_id="system")
+    content = types.Content(role="user", parts=[types.Part(text=json.dumps(messages))])
     final = ""
-    for event in runner.run(
-        user_id="system", session_id=session.id, new_message=content
-    ):
+    for event in runner.run(user_id="system", session_id=session.id, new_message=content):
         if event.is_final_response() and event.content and event.content.parts:
             final = event.content.parts[0].text or ""
     final = final.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()

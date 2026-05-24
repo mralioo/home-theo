@@ -7,6 +7,7 @@ ADK is on a fast (≈bi-weekly) release cadence with occasional breaking
 changes — pin google-adk in requirements.txt and keep this module isolated so
 an ADK bump can't break the deterministic core.
 """
+
 from __future__ import annotations
 
 import json
@@ -46,14 +47,10 @@ _triage_agent = LlmAgent(
 def _run_once(text: str) -> str:
     """Run the agent for a single message and return its final text."""
     runner = InMemoryRunner(agent=_triage_agent, app_name="ops")
-    session = runner.session_service.create_session_sync(
-        app_name="ops", user_id="system"
-    )
+    session = runner.session_service.create_session_sync(app_name="ops", user_id="system")
     content = types.Content(role="user", parts=[types.Part(text=text)])
     final = ""
-    for event in runner.run(
-        user_id="system", session_id=session.id, new_message=content
-    ):
+    for event in runner.run(user_id="system", session_id=session.id, new_message=content):
         if event.is_final_response() and event.content and event.content.parts:
             final = event.content.parts[0].text or ""
     return final

@@ -9,6 +9,7 @@ This is deliberately a deterministic workflow (predictable for a live demo)
 that *calls* LLM-backed agents for the fuzzy sub-tasks. That hybrid is exactly
 the doc's insight: a process map for the skeleton, context+LLM for the judgment.
 """
+
 from __future__ import annotations
 
 from app.agents import comms
@@ -22,7 +23,6 @@ from app.core.schemas import (
     OrchestratorResponse,
     Sentiment,
     StatusEvent,
-    Urgency,
 )
 from app.tools.property_tools import lookup_property_context, select_vendor
 
@@ -59,9 +59,13 @@ def handle_request(req: InboundRequest) -> OrchestratorResponse:
     # 1. Triage (dispatcher persona)
     _emit(rid, "triage", "started")
     diag = triage(req.raw_text, req.detected_sentiment)
-    _emit(rid, "triage", "done", f"{diag.category.value}/{diag.urgency.value}/{diag.sentiment.value}")
-    trace.append(f"Triaged: {diag.category.value}, urgency {diag.urgency.value}, "
-                 f"sentiment {diag.sentiment.value}")
+    _emit(
+        rid, "triage", "done", f"{diag.category.value}/{diag.urgency.value}/{diag.sentiment.value}"
+    )
+    trace.append(
+        f"Triaged: {diag.category.value}, urgency {diag.urgency.value}, "
+        f"sentiment {diag.sentiment.value}"
+    )
 
     # 2. Retrieve property context (property memory)
     _emit(rid, "context", "started")
@@ -74,10 +78,15 @@ def handle_request(req: InboundRequest) -> OrchestratorResponse:
     if diag.category not in (IssueCategory.financial, IssueCategory.legal):
         _emit(rid, "vendor", "started")
         vendor_plan = select_vendor(diag.category, ctx)
-        _emit(rid, "vendor", "done",
-              f"{vendor_plan.vendor_name} @ EUR {vendor_plan.estimated_cost_eur:.0f}")
-        trace.append(f"Vendor: {vendor_plan.vendor_name}, "
-                     f"est EUR {vendor_plan.estimated_cost_eur:.0f}")
+        _emit(
+            rid,
+            "vendor",
+            "done",
+            f"{vendor_plan.vendor_name} @ EUR {vendor_plan.estimated_cost_eur:.0f}",
+        )
+        trace.append(
+            f"Vendor: {vendor_plan.vendor_name}, est EUR {vendor_plan.estimated_cost_eur:.0f}"
+        )
 
     # 4. Risk gate
     _emit(rid, "risk_gate", "started")

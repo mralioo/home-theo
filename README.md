@@ -4,7 +4,7 @@ The **foundation layer**: a transport-agnostic agent orchestrator for property
 management (German WEG / SEV). Your colleague's voice/channel layer (ElevenLabs)
 calls this over HTTP; this layer triages, retrieves property context, picks a
 vendor, applies a human-escalation risk gate, drafts messages, and streams
-status events for the live BPMN dashboard.
+status events to a live role-aware dashboard.
 
 ## Why it's built this way
 - **Transport-agnostic**: orchestrator never knows if a request was a call, SMS,
@@ -14,6 +14,57 @@ status events for the live BPMN dashboard.
 - **Modular**: each agent + tool is a small unit. Tools are mocked now and
   swapped for the colleague's real vendor/messaging APIs later.
 - **Same image local & cloud**: one Dockerfile for Compose and Cloud Run.
+
+## Build status (in-flight on `feat/dev3-implementation`)
+
+The Dev 3 glue/realtime/dashboard lane is being built on top of commit-1
+(orchestration core by Dev 2). Progress so far:
+
+| Task | Branch | Status | What landed |
+|------|--------|--------|-------------|
+| **T0** ci-baseline   | `feat/dev3-implementation` | ✅ committed | ruff + pyproject, GitHub Actions CI, pre-commit hooks, PR template, BPMN-id validator, `tests/conftest.py` DB reset, FastAPI `lifespan` (replaces deprecated `on_event`), `PRAGMA journal_mode=WAL` |
+| **T1** event-bus     | `feat/dev3-implementation` | ✅ committed | `app/core/event_bus.py` — sync-safe in-memory pub/sub with 200-event backlog. One-line hook in `repository.record_event` fans events to subscribers. |
+| **T2** SSE endpoint  | `feat/dev3-implementation` | ✅ committed | `GET /events/stream/{request_id}` via `sse-starlette` (15s keepalive ping). Replays backlog + streams live. Verified end-to-end with `curl -N`. |
+| **T3** dashboard v0  | `feat/dev3-implementation` | ⚠️ skeleton landed, full UI in flight | `static/dashboard.{html,js,css}` + `diagram.bpmn` placeholder. **Direction has pivoted away from raw BPMN** — see "Dashboard direction" below. |
+| **T4** ElevenLabs inbound | `feat/dev3-implementation` | ✅ committed | `POST /webhooks/elevenlabs/tool` with `X-Webhook-Secret` auth, pydantic adapter to `InboundRequest`, orchestration kicked via `BackgroundTasks` so the agent gets its stock ack in <1.5s. `app/core/settings.py` via pydantic-settings. |
+| **merge** | — | ✅ | Pulled 5 commits from `main` (Dev 2 lane): `adk_agents/{triage,comms}`, Hausmind production dashboard at `app/static/dashboard.html` (served at `/dashboard`), `Makefile` with 60+ targets, `LOCAL_VERIFICATION.md`, relaxed `requirements.txt` pins (resolves the pre-existing fastapi/google-adk conflict). |
+| **T5** outbound + post-call | `feat/dev3-implementation` | ✅ committed | `app/tools/elevenlabs_outbound.py` async wrapper for `/v1/convai/twilio/outbound-call`, `POST /actions/call-vendor` (admin-secret gated, validates ticket exists), `POST /webhooks/elevenlabs/post-call` attaches transcript summary to ticket. Tests use `httpx.MockTransport` to assert exact wire shape. |
+| **T6** role-aware dashboard SPA | `feat/dev3-implementation` | ⏳ next | Fork Hausmind dashboard into tenant / owner / property-manager / facility-manager views. Shared component layer in `app/static/components/`. |
+| **T7** demo runbook  | `feat/dev3-implementation` | ⏳ pending | `scripts/demo.sh`, `DEMO.md`. |
+
+**Test status: 18 tests passing offline.** Live smoke verified end-to-end:
+`POST /api/requests` → SSE stream delivers all 7 BPMN status events; ElevenLabs
+webhook → stock ack returned + background orchestration completes; outbound
+call mock-test asserts exact ElevenLabs REST payload shape.
+
+### Dashboard direction
+The original plan was a raw BPMN node-lights viewer for the judges. **That
+diagram stays as an internal developer/observability view at
+`/static/dashboard.html`**, but the production-facing dashboard is being built
+as a clean, modern, role-aware single-page UI with views for:
+
+- **Tenant** — see your reported issues, current status, ETA, vendor name.
+- **Property owner** — portfolio-wide ticket roll-up + cost approvals.
+- **Property manager** — escalation queue, override decisions, message drafts.
+- **Facility manager** — work orders, vendor scheduling, on-site notes.
+
+Same backend (`/api/requests`, `/events/stream/*`); the UI is one component
+tree with role-gated panels. Smooth transitions, modular cards, no BPMN
+chrome bleeding into end-user views.
+
+## Endpoints (current)
+
+| Method | Path | Owner | What |
+|--------|------|-------|------|
+| `GET`  | `/health` | Dev 2 | liveness for Cloud Run |
+| `POST` | `/api/requests` | Dev 2 | run orchestration synchronously, return `OrchestratorResponse` |
+| `GET`  | `/api/requests/{id}/status` | Dev 2 | polled list of `StatusEvent`s |
+| `GET`  | `/events/stream/{id}` | Dev 3 (T2) | **SSE** push of `StatusEvent`s — backlog + live |
+| `POST` | `/webhooks/elevenlabs/tool` | Dev 3 (T4) | ElevenLabs server-tool adapter; runs orchestration in background |
+| `POST` | `/webhooks/elevenlabs/post-call` | Dev 3 (T5) | ElevenLabs post-call hook; attaches transcript summary to ticket |
+| `POST` | `/actions/call-vendor` | Dev 3 (T5) | place outbound call via ElevenLabs REST (X-Admin-Secret guarded) |
+| `GET`  | `/dashboard` | Dev 2 | Hausmind Pipeline Visualizer (production dashboard, role-aware in T6) |
+| `GET`  | `/static/*` | Dev 3 (T3) | BPMN dev/observability view (`dashboard.html`, `diagram.bpmn`, JS, CSS) |
 
 ## Run locally (offline demo — no keys)
 ```bash
@@ -63,23 +114,41 @@ container for the hackathon (data resets on cold start — fine for a demo). Onl
 move to Cloud SQL if you need durable, concurrent state, since it bills hourly.
 
 ## Merge plan with the voice layer
-1. Agree on `schemas.InboundRequest` / `OrchestratorResponse` (done — share this file).
-2. Colleague's ElevenLabs agent webhook POSTs `InboundRequest` to `/api/requests`.
-3. Replace `tools.property_tools.send_message` with their ElevenLabs/Twilio call.
-4. Dashboard polls (or websockets) `/api/requests/{id}/status`.
+1. Agree on `schemas.InboundRequest` / `OrchestratorResponse` ✅ (frozen in `app/core/schemas.py`).
+2. ElevenLabs server-tool POSTs to `/webhooks/elevenlabs/tool` ✅ (T4).
+3. Replace `tools.property_tools.send_message` with the real ElevenLabs/Twilio call (T5 in flight).
+4. Dashboard subscribes to `/events/stream/{id}` over SSE ✅ (T2).
 
 ## Layout
 ```
 app/
-  main.py            FastAPI surface (the only HTTP layer)
-  core/schemas.py    SHARED CONTRACT — the merge seam
-  core/repository.py SQLite state (swap URL for Cloud SQL)
-  agents/coordinator.py   orchestration brain + risk gate
-  agents/triage.py        dispatcher persona (fallback + LLM)
-  agents/comms.py         message drafting (templates + LLM)
-  agents/llm_triage.py    ADK LlmAgent + Claude (USE_LLM=1)
-  agents/llm_comms.py     ADK LlmAgent + Claude (USE_LLM=1)
-  tools/property_tools.py property memory, vendor pick, messaging (mocked)
-data/property_memory.json  the "property memory" fixture
-tests/test_flow.py         offline end-to-end tests
+  main.py                 FastAPI surface (lifespan, router mounts, StaticFiles)
+  core/
+    schemas.py            SHARED CONTRACT — the merge seam (frozen)
+    repository.py         SQLite state (WAL pragma; one-line event_bus hook)
+    event_bus.py          in-memory pub/sub for StatusEvent (T1)
+    settings.py           pydantic-settings env loader (T4)
+  agents/
+    coordinator.py        orchestration brain + risk gate
+    triage.py             dispatcher persona (fallback + LLM)
+    comms.py              message drafting (templates + LLM)
+    llm_triage.py         ADK LlmAgent + Claude (USE_LLM=1)
+    llm_comms.py          ADK LlmAgent + Claude (USE_LLM=1)
+  routes/
+    events.py             GET /events/stream/{id} (SSE, T2)
+    elevenlabs.py         POST /webhooks/elevenlabs/tool (T4)
+  tools/
+    property_tools.py     property memory, vendor pick, messaging (mocked)
+static/
+  dashboard.{html,js,css} BPMN dev view (T3 — to be superseded by role UI in T6)
+  diagram.bpmn            7-node placeholder, replaced by Biz 2's polished diagram
+data/property_memory.json the "property memory" fixture
+scripts/
+  validate_bpmn.py        CI guard: diagram ids must match coordinator nodes
+tests/
+  conftest.py             autouse fixture: reset DB per test
+  test_flow.py            offline end-to-end (Dev 2)
+  test_event_bus.py       pub/sub backlog + live (Dev 3, T1)
+  test_sse.py             route wiring + generator (Dev 3, T2)
+  test_elevenlabs_webhook.py auth + adapter + bg orchestration (Dev 3, T4)
 ```

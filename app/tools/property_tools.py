@@ -7,6 +7,7 @@ Priority order for lookup:
   1. Context service (OpenSearch vector DB) when CONTEXT_SERVICE_URL is set
   2. JSON fixture fallback — always works offline / in tests
 """
+
 from __future__ import annotations
 
 import json
@@ -142,8 +143,12 @@ def select_vendor(category: IssueCategory, ctx: PropertyContext) -> VendorPlan:
     # Fixture fallback
     vendor_id = ctx.preferred_vendors.get(cat, "generic-handyman")
     cost_table = {
-        "heating": 280.0, "plumbing": 180.0, "electrical": 220.0,
-        "elevator": 650.0, "access_keys": 90.0, "cleaning": 70.0,
+        "heating": 280.0,
+        "plumbing": 180.0,
+        "electrical": 220.0,
+        "elevator": 650.0,
+        "access_keys": 90.0,
+        "cleaning": 70.0,
     }
     return VendorPlan(
         vendor_id=vendor_id,

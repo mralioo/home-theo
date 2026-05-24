@@ -1,0 +1,54 @@
+.topbar {
+  padding: 0.5rem 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+.topbar .muted { opacity: 0.6; }
+.topbar button { margin-left: auto; }
+
+.grid-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  height: calc(100vh - 60px);
+  padding: 1rem;
+}
+#canvas {
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 8px;
+  background: #fff;
+}
+#event-log {
+  font-family: monospace;
+  font-size: 0.85rem;
+  max-height: 40vh;
+  overflow: auto;
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+#event-log li {
+  padding: 0.15rem 0;
+  border-bottom: 1px dashed var(--pico-muted-border-color);
+}
+
+/* BPMN node highlight markers (added/removed by dashboard.js) */
+.highlight-active .djs-visual > :nth-child(1) {
+  stroke: #f59e0b !important;
+  stroke-width: 4px !important;
+  fill: #fef3c7 !important;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.highlight-done .djs-visual > :nth-child(1) {
+  stroke: #10b981 !important;
+  stroke-width: 3px !important;
+  fill: #d1fae5 !important;
+}
+.highlight-error .djs-visual > :nth-child(1) {
+  stroke: #ef4444 !important;
+  stroke-width: 4px !important;
+  fill: #fee2e2 !important;
+}
+@keyframes pulse { 50% { opacity: 0.55; } }

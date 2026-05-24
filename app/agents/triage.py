@@ -7,6 +7,7 @@ Runs in two modes:
   * Fallback mode (default): keyword heuristics, zero external calls. This
     guarantees the demo runs even with no API key / no network.
 """
+
 from __future__ import annotations
 
 import os
@@ -76,6 +77,7 @@ def triage(raw_text: str, hint_sentiment: Sentiment | None = None) -> Diagnosis:
     if os.environ.get("USE_LLM") == "1":
         try:
             from app.agents.llm_triage import triage_llm  # lazy import
+
             return triage_llm(raw_text, hint_sentiment)
         except Exception as exc:  # never let the demo die on a model error
             print(f"[triage] LLM failed, using fallback: {exc}")
