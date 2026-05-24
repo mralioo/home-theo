@@ -161,7 +161,7 @@ textarea { resize: vertical; min-height: 72px; }
       <label>Tenant message</label>
       <textarea id="rawText" placeholder="e.g. The heating is broken since this morning…"></textarea>
       <label>Property</label>
-      <input id="propertyHint" value="Musterstrasse 12">
+      <input id="propertyHint" value="The Delta Campus Berlin">
       <label>Channel</label>
       <select id="channel">
         <option value="phone">Phone</option>
@@ -182,16 +182,17 @@ textarea { resize: vertical; min-height: 72px; }
     </div>
 
     <div class="sidebar-section">
-      <div class="section-title">Quick Scenarios</div>
+      <div class="section-title">🏢 Delta Campus Showcase</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Auto-resolve ↓ &nbsp;·&nbsp; Escalate ↓</div>
       <div class="preset-grid">
-        <div class="preset" onclick="preset('heating')">🔥 Heating</div>
-        <div class="preset" onclick="preset('plumbing')">🚿 Plumbing</div>
-        <div class="preset" onclick="preset('electrical')">⚡ Electrical</div>
-        <div class="preset" onclick="preset('elevator')">🛗 Elevator</div>
-        <div class="preset" onclick="preset('financial')">💶 Financial</div>
-        <div class="preset" onclick="preset('legal')">⚖️ Legal</div>
-        <div class="preset" onclick="preset('emergency')">🚨 Emergency</div>
-        <div class="preset" onclick="preset('angry')">😡 Angry</div>
+        <div class="preset" onclick="preset('coworking_cold')" title="auto-resolve · heating · high">🥶 Cold floor</div>
+        <div class="preset" onclick="preset('kitchen_sink')"  title="auto-resolve · plumbing · normal">🚿 Sink blocked</div>
+        <div class="preset" onclick="preset('meeting_room')"  title="auto-resolve · electrical · normal">💡 AV failure</div>
+        <div class="preset" onclick="preset('access_locked')" title="auto-resolve · access · high">🔑 Lockout</div>
+        <div class="preset" onclick="preset('gym_overheat')"  title="escalate · angry sentiment">😡 Gym fury</div>
+        <div class="preset" onclick="preset('lift_trapped')"  title="escalate · emergency · elevator">🚨 Lift stuck</div>
+        <div class="preset" onclick="preset('event_cold')"    title="escalate · cost > €800 threshold">💶 Event space</div>
+        <div class="preset" onclick="preset('legal_noise')"   title="escalate · legal category">⚖️ Legal noise</div>
       </div>
     </div>
 
@@ -250,15 +251,74 @@ const NODES = [
   { id: 'closed',    icon: '✅', label: 'Closed'    },
 ];
 
+// ── Delta Campus Berlin showcase scenarios ────────────────────────────────────
+// Each entry: text (tenant message), ch (channel), s (sentiment override, optional)
+// Covers every decision path: auto-resolve × 4, escalate × 4
 const PRESETS = {
-  heating:    { text: 'The radiator in my flat is cold since this morning. No heat at all.', ch: 'phone' },
-  plumbing:   { text: 'There is a water leak under the kitchen sink, it is getting worse.', ch: 'sms' },
-  electrical: { text: 'The power outlet in the bathroom stopped working, fuse keeps tripping.', ch: 'email' },
-  elevator:   { text: 'The lift is stuck between floors 2 and 3. Nobody inside but hours now.', ch: 'chat' },
-  financial:  { text: 'Why was I charged EUR 820 for a repair I never authorised? Explain this.', ch: 'email' },
-  legal:      { text: 'I want to understand my rights regarding the management contract. I may consult a lawyer.', ch: 'email' },
-  emergency:  { text: 'There is flooding in the basement! Water is pouring through the ceiling!', ch: 'phone' },
-  angry:      { text: 'This is the third time I report this! Unacceptable!!! Nobody ever calls back!!!', ch: 'phone', s: 'angry' },
+
+  // ── AUTO-RESOLVE paths ────────────────────────────────────────────────────
+
+  // heating/high  →  cost ~€486  <  €800 threshold  →  auto_resolve
+  coworking_cold: {
+    text: 'The open-plan coworking area on the 3rd floor has been cold all morning. ' +
+          'The radiators are not heating up and people are working in their coats.',
+    ch: 'chat',
+  },
+
+  // plumbing/normal  →  cost ~€198  <  threshold  →  auto_resolve
+  kitchen_sink: {
+    text: 'The shared kitchen sink on the 4th floor is completely blocked — ' +
+          'water is backing up onto the counter. A few teams have already complained.',
+    ch: 'sms',
+  },
+
+  // electrical/normal  →  cost ~€140  <  threshold  →  auto_resolve
+  meeting_room: {
+    text: 'The AV system and overhead lights in the meeting room on the 3rd floor ' +
+          'stopped working 20 minutes before a client pitch. We need it fixed urgently.',
+    ch: 'phone',
+  },
+
+  // access_keys/normal  →  cost ~€68  <  threshold  →  auto_resolve
+  access_locked: {
+    text: 'My transponder card stopped working and I cannot get into the 1st floor. ' +
+          'I have been standing outside for 15 minutes. Can someone help?',
+    ch: 'chat',
+  },
+
+  // ── ESCALATE paths ────────────────────────────────────────────────────────
+
+  // heating/emergency  +  angry sentiment  →  escalate_human (sentiment rule)
+  gym_overheat: {
+    text: 'The gym on the 1st floor is absolutely boiling — the AC is not cooling at all. ' +
+          'I have reported this three times already and nothing has been done. ' +
+          'This is completely unacceptable, members are leaving because of this!!!',
+    ch: 'phone',
+    s: 'angry',
+  },
+
+  // elevator/emergency  →  escalate_human (emergency + cost likely > threshold)
+  lift_trapped: {
+    text: 'The middle lift in the atrium stopped between the 2nd and 3rd floor ' +
+          'with someone inside. They pressed the alarm. We need help immediately.',
+    ch: 'phone',
+  },
+
+  // heating/high  →  cost €1281 > €800 threshold  →  escalate_human (cost rule)
+  event_cold: {
+    text: 'The event space on the 4th floor is too cold for our workshop this afternoon. ' +
+          'The ventilation is blowing cold air and the thermostat is not responding. ' +
+          'We have 40 guests arriving in two hours.',
+    ch: 'email',
+  },
+
+  // legal  →  escalate_human (legal category rule, regardless of cost)
+  legal_noise: {
+    text: 'I am a member in the private office on the 2nd floor. The event space ' +
+          'above is causing serious noise disturbance every evening. ' +
+          'I want to understand what my rights are and whether this violates my contract.',
+    ch: 'email',
+  },
 };
 
 // ── State ────────────────────────────────────────────────────────────────────
