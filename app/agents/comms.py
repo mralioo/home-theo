@@ -4,6 +4,7 @@ orders). Maps to the 'clear status updates' gain across every persona.
 
 Fallback mode uses templates so the demo always produces sensible text.
 """
+
 from __future__ import annotations
 
 import os
@@ -45,6 +46,7 @@ def polish(messages: dict[str, str]) -> dict[str, str]:
     if os.environ.get("USE_LLM") == "1":
         try:
             from app.agents.llm_comms import polish_llm
+
             return polish_llm(messages)
         except Exception as exc:
             print(f"[comms] LLM polish failed, using templates: {exc}")

@@ -7,6 +7,7 @@ For the hackathon these read from a small in-repo fixture (the "property
 memory"). On GCP you point them at Firestore / Cloud SQL / your colleague's
 real vendor + messaging APIs.
 """
+
 from __future__ import annotations
 
 import json
@@ -35,8 +36,12 @@ def select_vendor(category: IssueCategory, ctx: PropertyContext) -> VendorPlan:
     # Cost + window are stubbed; the real vendor agent (colleague) negotiates
     # these on a live ElevenLabs outbound call.
     cost_table = {
-        "heating": 280.0, "plumbing": 180.0, "electrical": 220.0,
-        "elevator": 650.0, "access_keys": 90.0, "cleaning": 70.0,
+        "heating": 280.0,
+        "plumbing": 180.0,
+        "electrical": 220.0,
+        "elevator": 650.0,
+        "access_keys": 90.0,
+        "cleaning": 70.0,
     }
     return VendorPlan(
         vendor_id=vendor_id,

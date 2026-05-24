@@ -11,6 +11,7 @@ Contract (DEV3_CONTEXT.md §5.4):
   Body : { tool_name, conversation_id, caller_id, parameters: {...} }
   Resp : { ticket_id, agent_message }
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
@@ -23,10 +24,7 @@ from app.core.settings import settings
 
 router = APIRouter()
 
-_STOCK_ACK = (
-    "Got it — I'm dispatching maintenance now. We'll text you once a "
-    "vendor is scheduled."
-)
+_STOCK_ACK = "Got it — I'm dispatching maintenance now. We'll text you once a vendor is scheduled."
 
 
 class ElevenLabsToolParams(BaseModel):
@@ -68,6 +66,7 @@ def _run_orchestration(req: InboundRequest) -> None:
         handle_request(req)
     except Exception as exc:  # noqa: BLE001 — defensive, last line of defense
         import sys
+
         print(f"orchestration failed for {req.request_id}: {exc}", file=sys.stderr)
 
 

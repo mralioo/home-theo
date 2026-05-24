@@ -3,14 +3,15 @@ State repository. SQLite locally, swap the engine URL for Postgres/Cloud SQL
 on GCP. Nothing else in the codebase touches the DB directly — only this file.
 This keeps the local->cloud migration to a single line change.
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 from app.core import event_bus
 from app.core.schemas import StatusEvent
@@ -90,8 +91,7 @@ def record_event(ev: StatusEvent) -> None:
 def events_for(request_id: str) -> list[dict]:
     with _conn() as c:
         rows = c.execute(
-            "SELECT node, status, detail, at FROM status_events "
-            "WHERE request_id=? ORDER BY id",
+            "SELECT node, status, detail, at FROM status_events WHERE request_id=? ORDER BY id",
             (request_id,),
         ).fetchall()
     return [dict(r) for r in rows]

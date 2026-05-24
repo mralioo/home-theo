@@ -8,6 +8,7 @@ Two layers:
      the endpoint by subscribing through `event_bus` and publishing live.
      This is what the browser EventSource sees, minus the HTTP transport.
 """
+
 from __future__ import annotations
 
 import asyncio

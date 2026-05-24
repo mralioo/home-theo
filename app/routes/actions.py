@@ -5,6 +5,7 @@ we tell ElevenLabs to place an outbound call to a vendor for an existing
 ticket. Currently exposed as a JSON-API; the dashboard hooks a button to it
 in T6.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Header, HTTPException

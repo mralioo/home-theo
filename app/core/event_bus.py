@@ -5,11 +5,12 @@ async SSE subscribers. The coordinator runs in FastAPI's threadpool (sync def
 routes) but SSE subscribers are async — `publish` uses run_coroutine_threadsafe
 to cross that boundary safely.
 """
+
 from __future__ import annotations
 
 import asyncio
 from collections import defaultdict, deque
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from app.core.schemas import StatusEvent
 

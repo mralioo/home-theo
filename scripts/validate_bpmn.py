@@ -1,4 +1,5 @@
 """Fail CI if static/diagram.bpmn lacks any node id that the coordinator emits."""
+
 import sys
 import xml.etree.ElementTree as ET
 

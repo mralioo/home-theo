@@ -4,6 +4,7 @@ Loaded once at import time; consumers `from app.core.settings import settings`.
 Defaults are safe for local dev and tests — production must override the
 secret values via the deployment environment.
 """
+
 from __future__ import annotations
 
 from pydantic_settings import BaseSettings, SettingsConfigDict

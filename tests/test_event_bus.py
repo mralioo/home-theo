@@ -1,4 +1,5 @@
 """Unit tests for in-memory event bus."""
+
 import asyncio
 
 import pytest

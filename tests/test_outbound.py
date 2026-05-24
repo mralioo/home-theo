@@ -4,12 +4,12 @@ All real HTTP traffic to ElevenLabs is intercepted with httpx.MockTransport
 so the tests run offline and assert the exact URL + body shape sent to the
 ElevenLabs Conversational AI endpoint.
 """
+
 from __future__ import annotations
 
 import json
 
 import httpx
-import pytest
 from fastapi.testclient import TestClient
 
 from app.core.repository import record_event
@@ -84,7 +84,10 @@ def test_call_vendor_happy_path_posts_to_elevenlabs(monkeypatch):
     assert captured["headers"]["xi-api-key"] == "fake-key"
     assert captured["body"]["to_number"] == "+4915123456789"
     assert captured["body"]["agent_id"] == "agent_default"
-    assert captured["body"]["conversation_initiation_client_data"]["dynamic_variables"]["ticket_id"] == rid
+    assert (
+        captured["body"]["conversation_initiation_client_data"]["dynamic_variables"]["ticket_id"]
+        == rid
+    )
 
 
 def test_call_vendor_no_api_key_returns_502(monkeypatch):

@@ -5,6 +5,7 @@ to place an outbound voice call to a vendor. Kept as a separate module so
 the route handlers stay focused on adapter logic and can be unit-tested
 with `httpx.MockTransport`.
 """
+
 from __future__ import annotations
 
 import httpx

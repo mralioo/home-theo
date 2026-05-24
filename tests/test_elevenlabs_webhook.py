@@ -1,7 +1,6 @@
 """Tests for the ElevenLabs server-tool webhook adapter."""
-from __future__ import annotations
 
-import time
+from __future__ import annotations
 
 from fastapi.testclient import TestClient
 

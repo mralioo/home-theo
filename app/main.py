@@ -8,6 +8,7 @@ Endpoints:
   GET  /health                   -> liveness for Cloud Run
   GET  /dashboard                -> pipeline visualizer UI
 """
+
 from __future__ import annotations
 
 import asyncio
